@@ -646,7 +646,7 @@ function shelf(cx, cz, len, rotY, [frameColor, boardColor], double = true, H = 2
 // 책장 8줄 (줄 사이로 사람이 다닐 수 있게)
 const KEEP_S0 = scene.children.length, KEEP_C0 = colliders.length, KEEP_B0 = books.length;
 // 줄마다 가운데를 끊어서(4.0~5.0) 가로로도 지나가게, 창 쪽(뒤)도 통로
-for (let i = 0; i < 8; i++) { shelf(-17.43 + i * 1.08, 3.15, 1.7, 0, i % 2 ? BEIGE : BROWN); shelf(-17.43 + i * 1.08, 7.2, 4.4, 0, i % 2 ? BEIGE : BROWN); }
+for (let i = 0; i < 8; i++) { shelf(-16.83 + i * 1.04, 3.15, 1.7, 0, i % 2 ? BEIGE : BROWN); shelf(-16.83 + i * 1.04, 7.2, 4.4, 0, i % 2 ? BEIGE : BROWN); }
 const KEEP_S1 = scene.children.length, KEEP_C1 = colliders.length, KEEP_B1 = books.length;
 // 오른쪽 서고: 끝에서 끝까지
 for (let i = 0; i < 11; i++) shelf(0.5 + i * 1.2, 5.8, 7.2, 0, i % 3 === 1 ? BROWN : BEIGE);
@@ -1498,7 +1498,7 @@ function shelfHit(n, x, z0, z1) {
   const m = new THREE.Mesh(new THREE.BoxGeometry(0.55, 2.1, z1 - z0), shelfHitM);
   m.position.set(x, 1.05, (z0 + z1) / 2); m.visible = false; m.userData.dept = 'shelf' + n; m.userData.keep = true; scene.add(m); signMeshes.push(m);
 }
-for (let i = 0; i < 8; i++) { shelfHit(1 + i, -17.43 + i * 1.08, 2.3, 4.0); shelfHit(1 + i, -17.43 + i * 1.08, 5.0, 9.4); }
+for (let i = 0; i < 8; i++) { shelfHit(1 + i, -16.83 + i * 1.04, 2.3, 4.0); shelfHit(1 + i, -16.83 + i * 1.04, 5.0, 9.4); }
 for (let i = 0; i < 11; i++) shelfHit(9 + i, 0.5 + i * 1.2, 2.2, 9.4);
 function shelfSign(n, x, z, rotY) {
   const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rotY; g.userData.keep = true; scene.add(g);
@@ -1509,7 +1509,7 @@ function shelfSign(n, x, z, rotY) {
 }
 // 왼쪽 서고 (제2회의실 옆): 1~8 / 오른쪽 긴 서가: 9~19 (통로 쪽 끝면)
 // 연구소 쪽 → 휴게실 쪽 순서: 서고 8줄(1~8) → 앞 긴 서가 11개(9~19). 통로 쪽 끝면마다
-for (let i = 0; i < 8; i++) shelfSign(1 + i, -17.43 + i * 1.08, 9.43, 0);
+for (let i = 0; i < 8; i++) shelfSign(1 + i, -16.83 + i * 1.04, 9.43, 0);
 for (let i = 0; i < 11; i++) { shelfSign(9 + i, 0.5 + i * 1.2, 2.18, Math.PI); shelfSign(9 + i, 0.5 + i * 1.2, 9.43, 0); }
 deptSign('info', -2.2, -0.5, 0);
 deptSign('center', 9.2, -0.4, 0);

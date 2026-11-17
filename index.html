@@ -195,7 +195,7 @@
 </div>
 <div id="mapBox"><div id="mapHead">🗺️ 지도 <small>눌러서 이동</small><span id="mapTog">－</span></div><canvas id="mapCv" width="460" height="290"></canvas><button id="stampBtn">🎯 스탬프 투어 <b id="stampN">0/3</b></button></div>
 <div id="shotView"><div class="box"><img id="shotImg" alt="인증샷"><p id="shotTip">사진이 저장됐어요! 안 되면 사진을 길게 눌러 저장하세요.</p>
-<button id="shotShare">📤 인스타 스토리·친구에게 공유</button><br style="line-height:2.6"><a id="shotSave" download="랜선재단나들이.jpg">💾 다시 저장</a><button id="shotClose">닫기</button></div></div>
+<button id="shotShare">📤 인스타 스토리·친구에게 공유</button><br style="line-height:2.6"><a id="shotSave" download="재단랜선나들이.jpg">💾 다시 저장</a><button id="shotClose">닫기</button></div></div>
 <div id="stampFx"></div>
 <div id="quizView"><div class="box"><div id="quizStep"></div><p id="quizQ"></p>
   <div id="quizBtns"><button id="quizO">⭕ 맞아요</button><button id="quizX">❌ 아니에요</button></div>
@@ -2986,11 +2986,11 @@ function takeShot() {
   const bw = 520 * s, bh = 92 * s, x0 = 20 * s, y0 = H - bh - 20 * s;
   g.fillStyle = 'rgba(255,255,255,0.88)'; g.beginPath(); if (g.roundRect) g.roundRect(x0, y0, bw, bh, 18 * s); else g.rect(x0, y0, bw, bh); g.fill();
   if (logoImg.complete && logoImg.naturalWidth) g.drawImage(logoImg, x0 + 16 * s, y0 + 12 * s, 230 * s, 230 * s * logoImg.naturalHeight / logoImg.naturalWidth);
-  g.fillStyle = '#e8702a'; g.font = `bold ${26 * s}px ${FONT}`; g.textAlign = 'left'; g.fillText('#랜선재단나들이', x0 + 262 * s, y0 + 40 * s);
+  g.fillStyle = '#e8702a'; g.font = `bold ${26 * s}px ${FONT}`; g.textAlign = 'left'; g.fillText('#재단랜선나들이', x0 + 262 * s, y0 + 40 * s);
   g.fillStyle = '#4b5a68'; g.font = `${20 * s}px ${FONT}`; g.fillText(`${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}  ${myName || ''}`, x0 + 262 * s, y0 + 72 * s);
   const url = cv.toDataURL('image/jpeg', 0.9);
   $('shotImg').src = url; $('shotSave').href = url;
-  const a = document.createElement('a'); a.href = url; a.download = '랜선재단나들이.jpg'; document.body.appendChild(a); a.click(); a.remove();
+  const a = document.createElement('a'); a.href = url; a.download = '재단랜선나들이.jpg'; document.body.appendChild(a); a.click(); a.remove();
   $('shotView').classList.add('show');
 }
 $('shotBtn').addEventListener('click', () => {
@@ -3001,7 +3001,7 @@ $('shotClose').addEventListener('click', () => $('shotView').classList.remove('s
 
 /* ================= 💌 친구 초대 · 📤 인증샷 공유 ================= */
 const SITE_URL = 'https://ktrf-korea.github.io/ktrf-online/';
-const INVITE_TEXT = '한국교과서연구재단을 3D로 둘러볼 수 있어요! 같이 랜선 재단 나들이 가요 🏫✨ #랜선재단나들이';
+const INVITE_TEXT = '한국교과서연구재단을 3D로 둘러볼 수 있어요! 같이 랜선 재단 나들이 가요 🏫✨ #재단랜선나들이';
 async function copyLink(msg) {
   try { await navigator.clipboard.writeText(SITE_URL); toast(msg || '🔗 링크를 복사했어요! 카톡·인스타 DM에 붙여넣기 하세요'); }
   catch (e) { prompt('아래 링크를 복사해서 친구에게 보내 주세요', SITE_URL); }
@@ -3013,10 +3013,10 @@ $('inviteBtn').addEventListener('click', async () => {
 $('shotShare').addEventListener('click', async () => {
   try {
     const blob = await (await fetch($('shotImg').src)).blob();
-    const file = new File([blob], '랜선재단나들이.jpg', { type: 'image/jpeg' });
+    const file = new File([blob], '재단랜선나들이.jpg', { type: 'image/jpeg' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.clipboard.writeText('#랜선재단나들이 @ktrf_korea'); } catch (e) {}
-      await navigator.share({ files: [file], text: '#랜선재단나들이 ' + SITE_URL });
+      try { await navigator.clipboard.writeText('#재단랜선나들이 @ktrf_korea'); } catch (e) {}
+      await navigator.share({ files: [file], text: '#재단랜선나들이 ' + SITE_URL });
       return;
     }
   } catch (e) { if (e.name === 'AbortError') return; }

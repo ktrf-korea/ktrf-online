@@ -212,6 +212,7 @@
   <button id="shotBtn" class="shot">📷 인증샷</button>
   <button id="lookBtn">👕 꾸미기</button>
   <button id="viewBtn">👁️ 1인칭</button>
+  <button id="jumpBtn">🦘 점프</button>
   <button id="sitBtn">🪑 앉기</button>
   <button id="hiBtn" hidden>✋ 하이파이브</button>
   <button id="teaBtn">☕ 차 한 잔</button>
@@ -1571,7 +1572,7 @@ reader.userData.arms.forEach(p => { p.rotation.x = -0.9; p.rotation.z *= -2; });
 const rb = box(0.32, 0.24, 0.03, M(0x7fb3d5), 0, 0.82, 0.38, reader); rb.rotation.x = -0.4;
 P({ shirt: 0xe9e4d8, hair: 0x2a1f1a, longHair: true }, 1.65, -7.45, -Math.PI / 2);             // 교과서정보관
 P({ shirt: 0xc7d6ea, hair: 0x1e1a18, longHair: true }, -0.85, -2.65, Math.PI / 2);
-P({ shirt: 0xf3efe6, hair: 0x2a1f1a, longHair: true }, 10.55, -4.65, Math.PI / 2);           // 민원센터
+P({ shirt: 0xf3efe6, hair: 0x2a1f1a, longHair: true }, 10.55, -4.65, Math.PI / 2).userData.monitor = true;   // 모니터링단 담당           // 민원센터
 function addHeadset(c) {
   const hm = M(0x222428, { roughness: 0.4 });
   const band = new THREE.Mesh(new THREE.TorusGeometry(0.29, 0.022, 8, 24, Math.PI), hm);
@@ -1616,7 +1617,7 @@ P({ shirt: 0xc3d3e8, hair: 0x3a2a22, male: true }, 1.65, -5.05, -Math.PI / 2);
 P({ shirt: 0xd8e3f0, hair: 0x2a1f1a, male: true }, 6.8, -10.4, 0);        // 창가 벽 자리
 P({ shirt: 0x7b8fa6, hair: 0x1e1a18, male: true }, 7.1, -7.1, -Math.PI / 2);               // 서버실 벽 자리
 P({ shirt: 0xf3e0e6, hair: 0x2e2420, longHair: true }, 10.55, -7.05, Math.PI / 2);
-P({ shirt: 0xb7c9b0, hair: 0x231c18, longHair: true }, 13.05, -4.65, -Math.PI / 2);
+P({ shirt: 0xb7c9b0, hair: 0x231c18, longHair: true }, 13.05, -4.65, -Math.PI / 2).userData.monitor = true;   // 모니터링단 담당
 // 총무부 · 이사장실 · 사무국장실
 P({ shirt: 0xf2d4cf, hair: 0x231c18, longHair: true }, 25.3, -1.7, -Math.PI / 2);              // 총무부
 const chairman = P({ shirt: 0x2b2f3a, hair: 0x2b2420, male: true, tie: 0x6a1f2b }, 27.5, -10.75, 0);      // 이사장님
@@ -1889,7 +1890,7 @@ function showInfo(key) {
     a.textContent = d.linkText || '🔗 자세히 보기'; b.appendChild(a);
   }
   infoEl.classList.toggle('ktrf', key === 'ktrf');
-  infoEl.querySelector('.tag').textContent = key === 'quizDone' ? 'OX 퀴즈' : key === 'call' ? '민원상담' : key.startsWith('stamp') ? '스탬프 투어' : key === 'tios' || key === 'newsbrief' ? '소식' : key === 'event' ? '행사 안내' : key === 'fairy' ? '🎉 이벤트' : key === 'journal' || key === 'reports' ? '연구 자료' : key.startsWith('shelf') ? '서가 안내' : key === 'ktrf' ? '재단 소개' : key === 'greeting' ? '인사말' : '부서 소개';
+  infoEl.querySelector('.tag').textContent = key === 'monitorReport' ? '행사 안내' : key === 'quizDone' ? 'OX 퀴즈' : key === 'call' ? '민원상담' : key.startsWith('stamp') ? '스탬프 투어' : key === 'tios' || key === 'newsbrief' ? '소식' : key === 'event' ? '행사 안내' : key === 'fairy' ? '🎉 이벤트' : key === 'journal' || key === 'reports' ? '연구 자료' : key.startsWith('shelf') ? '서가 안내' : key === 'ktrf' ? '재단 소개' : key === 'greeting' ? '인사말' : '부서 소개';
   infoEl.scrollTop = 0;
   infoEl.classList.add('show');
 }
@@ -2184,12 +2185,36 @@ if (showEvent) {
     c.fillText(dd > 0 ? '2026. 12. 17.(목) 12:30 · 노보텔 앰배서더 강남' : '오늘입니다! 노보텔 앰배서더 강남에서 만나요', w / 2, 452);
     c.fillStyle = '#e8702a'; c.font = `bold 32px ${FONT}`; c.fillText(Date.now() < RSVP_END.getTime() ? '👆 눌러서 자세히 보기 · 사전 참석 등록 중' : '👆 눌러서 자세히 보기', w / 2, 524);
   });
-  const g = new THREE.Group(); g.position.set(-7.46, 0, 20.3); g.rotation.y = Math.PI / 2; scene.add(g);
+  const g = new THREE.Group(); g.position.set(-7.46, 0.26, 21.07); g.rotation.y = Math.PI / 2; g.scale.setScalar(0.86); scene.add(g);   // 오른쪽 칸 (왼쪽 칸은 모니터링단 결과보고회)
   box(1.86, 1.08, 0.06, M(0x15171b, { roughness: 0.3, metalness: 0.4 }), 0, 1.85, 0.03, g);
   const sc = new THREE.Mesh(new THREE.PlaneGeometry(1.76, 0.99), new THREE.MeshBasicMaterial({ map: tx, toneMapped: false }));
   sc.position.set(0, 1.85, 0.065); sc.userData.dept = 'event'; g.add(sc); signMeshes.push(sc);
   const evtA = document.getElementById('evt');
   if (dd > 0 && Date.now() < RSVP_END.getTime()) evtA.textContent = `🎉 12.17 성과보고회 D-${dd} · 사전 참석 등록 →`;
+}
+
+/* ================= ⏳ 교과서 모니터링단 결과보고회 D-day 전광판 (성과보고회 전광판 옆) ================= */
+const MON_DAY = new Date('2026-12-04T00:00:00+09:00');
+if (Date.now() < MON_DAY.getTime() + 86400e3) {
+  const kstNow = new Date(Date.now() + 9 * 3600e3);
+  const dd = Math.round((MON_DAY.getTime() - (Date.UTC(kstNow.getUTCFullYear(), kstNow.getUTCMonth(), kstNow.getUTCDate()) - 9 * 3600e3)) / 86400e3);
+  const tx = canvasTex(1024, 576, (c, w, h) => {
+    c.fillStyle = '#082a26'; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#0f4a42'; c.fillRect(0, 0, w, 96);
+    c.fillStyle = '#ffffff'; c.textAlign = 'center'; c.font = `bold 40px ${FONT}`; c.fillText('2026 교과서 모니터링단 결과보고회', w / 2, 64);
+    c.shadowColor = '#5ff0c8'; c.shadowBlur = 30; c.fillStyle = '#7dffd6';
+    c.font = `900 ${dd > 0 ? 230 : 150}px ${FONT}`; c.fillText(dd > 0 ? `D-${dd}` : 'D-DAY 🎉', w / 2, dd > 0 ? 350 : 320);
+    c.shadowBlur = 0; c.fillStyle = '#d4f5ec'; c.font = `bold 40px ${FONT}`;
+    c.fillText(dd > 0 ? '2026. 12. 4.(금)' : '오늘입니다! 함께해 주셔서 감사합니다', w / 2, 452);
+    c.fillStyle = '#ffd34d'; c.font = `bold 28px ${FONT}`; c.fillText('👆 눌러서 자세히 보기 · 모니터링단 여러분, 고맙습니다', w / 2, 524);
+  });
+  DEPT_INFO.monitorReport = { name: '2026 교과서 모니터링단 결과보고회', paras: [
+    `📅 2026년 12월 4일(금)${dd > 0 ? `  ·  D-${dd}` : '  ·  오늘!'}`,
+    '한 해 동안 교과서를 꼼꼼히 살펴 주신 교과서 모니터링단 여러분의 활동 결과를 함께 나누는 자리예요.'] };
+  const g = new THREE.Group(); g.position.set(-7.46, 0.26, 19.25); g.rotation.y = Math.PI / 2; g.scale.setScalar(0.86); scene.add(g);
+  box(1.86, 1.08, 0.06, M(0x15171b, { roughness: 0.3, metalness: 0.4 }), 0, 1.85, 0.03, g);
+  const sc = new THREE.Mesh(new THREE.PlaneGeometry(1.76, 0.99), new THREE.MeshBasicMaterial({ map: tx, toneMapped: false }));
+  sc.position.set(0, 1.85, 0.065); sc.userData.dept = 'monitorReport'; g.add(sc); signMeshes.push(sc);
 }
 
 /* ================= ❓ 교과서 OX 퀴즈 (안내데스크 오른쪽, 트리 옆 키오스크) ================= */
@@ -2294,7 +2319,7 @@ let now = 0, mode = 'view', sitting = null, preSit = null;
 const coarse = matchMedia('(pointer: coarse)').matches;
 const zonesEl = $('zones'), actionsEl = $('actions'), joyEl = $('joy'), knob = $('knob'), hintEl = $('hint'), toastEl = $('toast');
 const HINT_VIEW = '끌어서 둘러보기 · 두 손가락으로 확대';
-const HINT_WALK = '방향키·WASD로 걷기 · 스페이스 앉기 · 1 하이파이브 · 2 차 한 잔';
+const HINT_WALK = '방향키·WASD로 걷기 · 스페이스 점프 · C 앉기 · V 1인칭/3인칭 · 2 차 한 잔';
 
 let toastTimer;
 function toast(msg) {
@@ -2389,7 +2414,8 @@ const keys = {};
 addEventListener('keydown', e => {
   if (mode !== 'walk' || /INPUT|TEXTAREA/.test(e.target.tagName)) return;
   keys[e.code] = true;
-  if (e.code === 'Space') { e.preventDefault(); toggleSit(); }
+  if (e.code === 'Space') { e.preventDefault(); jump(); }
+  if (e.code === 'KeyC') toggleSit();
   if (e.code === 'KeyV') setView(!firstPerson);
   if (e.code === 'Digit1') highfive();
   if (e.code === 'Digit2') tea();
@@ -2412,6 +2438,12 @@ const endJoy = e => { if (e.pointerId !== joyId) return; joyId = null; jx = jy =
 joyEl.addEventListener('pointerup', endJoy); joyEl.addEventListener('pointercancel', endJoy);
 
 // 들어가기 / 나가기
+function jump() {
+  if (mode !== 'walk') return;
+  const u = player.userData; if (sitting) { standUp(); return; }
+  if ((u.jumpY || 0) > 0.02) return;
+  u.jumpV = 4.2; u.jumpY = 0.001;
+}
 /* ================= 👁️ 1인칭 / 🎥 3인칭 ================= */
 let firstPerson = false;
 function setView(fp) {
@@ -3008,6 +3040,7 @@ function greetLine(c) {
   if (c === chairman) return '반갑습니다. 잘 오셨어요 😊';
   if (c === cleaner) return '어서 오세요~ 🧹';
   if (c === agent1 || c === agent2) return '안녕하세요, 민원센터입니다 😊';
+  if (c.userData.monitor) return '안녕하세요! 교과서 모니터링단 담당자입니다 😊';
   return GREET_LINES[Math.floor(Math.random() * GREET_LINES.length)];
 }
 const greeters = [...people, cleaner];
@@ -3141,6 +3174,7 @@ function updateTour() {
   $('tourBar').style.width = Math.min(100, (performance.now() - tourStart) / (2200 + TOUR_HOLD) * 100) + '%';
 }
 $('tourBtn').addEventListener('click', tourBegin);
+$('jumpBtn').addEventListener('click', jump);
 $('viewBtn').addEventListener('click', () => { setView(!firstPerson); toast(firstPerson ? '👁️ 1인칭: 화면을 끌어서 둘러보세요' : '🎥 3인칭으로 돌아왔어요'); });
 $('qrX').addEventListener('click', () => document.body.classList.add('qrOff'));
 $('tourNext').addEventListener('click', () => tourShow(tourI + 1));
@@ -3194,6 +3228,11 @@ function updatePlayer(dt) {
     u.legs[0].rotation.x = swing; u.legs[1].rotation.x = -swing;
     u.arms[0].rotation.x = -swing * 0.8; u.arms[1].rotation.x = swing * 0.8;
     player.position.y = amt ? Math.abs(Math.sin(u.walkT)) * 0.04 : 0;
+    if (u.jumpY > 0 || u.jumpV > 0) {   // 점프
+      u.jumpV -= 14 * dt; u.jumpY = Math.max(0, u.jumpY + u.jumpV * dt); if (u.jumpY === 0) u.jumpV = 0;
+      player.position.y += u.jumpY;
+      u.legs[0].rotation.x = u.legs[1].rotation.x = -0.35; u.arms[0].rotation.x = u.arms[1].rotation.x = -0.5;
+    }
   }
   u.head.rotation.x = Math.sin(now * 0.7) * 0.04;
 
@@ -3229,7 +3268,7 @@ function updatePlayer(dt) {
 
   // 카메라가 나를 따라오기 (1인칭이면 눈높이)
   if (!fly) {
-    const desired = new THREE.Vector3(player.position.x, firstPerson ? (sitting ? 1.15 : 1.55) : 1.1, player.position.z);
+    const desired = new THREE.Vector3(player.position.x, (firstPerson ? (sitting ? 1.15 : 1.55) : 1.1) + (player.userData.jumpY || 0), player.position.z);
     const delta = desired.sub(controls.target);
     controls.target.add(delta); camera.position.add(delta);
   }

@@ -1452,15 +1452,33 @@ sideCabinet(6.85, 8.35, 29.5);                               // 사무국장실:
 
 /* ================= 창밖 나무 ================= */
 const trees = [];
-const greens = [0x6fa35a, 0x83b866, 0x5a9150, 0x9cc77a];
+// 계절에 맞게 자동으로 바뀌어요 (한국 시간 기준 · 미리보기: 주소 뒤에 ?season=spring/summer/autumn/winter)
+const SEASON = (() => {
+  const q = (location.search.match(/season=(spring|summer|autumn|winter)/) || [])[1]; if (q) return q;
+  const m = new Date(Date.now() + 9 * 3600e3).getUTCMonth() + 1;
+  return m >= 3 && m <= 5 ? 'spring' : m <= 8 && m >= 6 ? 'summer' : m >= 9 && m <= 11 ? 'autumn' : 'winter';
+})();
+const greens = {
+  spring: [0xf7c6d4, 0xf3b0c3, 0xfbe0e8, 0x9cc77a],
+  summer: [0x6fa35a, 0x83b866, 0x5a9150, 0x9cc77a],
+  autumn: [0xf2cf5b, 0xe8b24a, 0xa9bd63, 0xf5dc7a],   // 은행잎 노랑 위주 + 살짝 주황·연두
+  winter: [0xf4f7fa, 0xe6edf3, 0xf4f7fa, 0x8a7a66],
+}[SEASON];
+const MAPLE = [0xe2763c, 0xd4573a, 0xec9550, 0xdb6a3e];   // 가을: 사이사이 단풍나무
+let treeN = 0;
 function tree(x, z) {
+  const pal = SEASON === 'autumn' && treeN++ % 3 === 1 ? MAPLE : greens;
   const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
   const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.2, 2.6, 8), M(0x7a5a3c));
   trunk.position.y = 1.3; trunk.castShadow = true; g.add(trunk);
   const crown = new THREE.Group(); crown.position.y = 2.4; g.add(crown);
   for (let k = 0; k < 4; k++) {
-    const s = new THREE.Mesh(new THREE.SphereGeometry(rand(0.9, 1.4), 12, 10), M(greens[k % 4]));
+    const s = new THREE.Mesh(new THREE.SphereGeometry(rand(0.9, 1.4) * (SEASON === 'winter' ? 0.75 : 1), 12, 10), M(pal[k % 4]));
     s.position.set(rand(-0.8, 0.8), rand(0, 1.2), rand(-0.5, 0.5)); s.castShadow = true; crown.add(s);
+  }
+  if (SEASON === 'winter') for (let k = 0; k < 5; k++) {   // 겨울: 앙상한 가지
+    const br = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.06, rand(0.9, 1.4), 5), M(0x6b5240));
+    br.position.set(0, 2.5, 0); br.rotation.set(rand(-0.6, 0.6), rand(0, 6), rand(-0.9, 0.9)); g.add(br);
   }
   trees.push({ crown, ph: rand(0, 6) });
 }

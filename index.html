@@ -1931,7 +1931,7 @@ function label(text, x, y, z, size = 4.2) {
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthTest: false, transparent: true }));
   s.scale.set(size, size / 5, 1); s.position.set(x, y, z); s.renderOrder = 10; scene.add(s);
 }
-label('출입문', -4, 3.8, 16);
+// (출입문 표기 지움)
 // (안내데스크 표기 지움)
 label('서고 및 열람공간', 4.5, 3.9, 5.8);
 label('교과서정보관', -1.0, 3.6, -7);
@@ -2248,8 +2248,8 @@ function updateBalloons(t) {
     b.env.rotation.y = t * 0.15;
   }
 }
-if (showEvent) hotAirBalloon(['#e8702a', '#ffd34d', '#ffffff', '#1f3a5f'], '🎉 2026 재단 성과보고회', '12월 17일(목) 노보텔 앰배서더 강남', 'event', 10, 17, 4, 10, 0.04);
-if (DEPT_INFO.monitorReport) hotAirBalloon(['#17a589', '#7dffd6', '#ffffff', '#0f4a42'], '📚 교과서 모니터링단 결과보고회', '12월 4일(금)', 'monitorReport', -13, 14.5, 2, 8, -0.05);
+if (showEvent) hotAirBalloon(['#e8702a', '#ffd34d', '#ffffff', '#1f3a5f'], '🎉 2026 재단 성과보고회', '12월 17일(목) 노보텔 앰배서더 강남', 'event', 0, 17, 7, 8, 0.04);
+if (DEPT_INFO.monitorReport) hotAirBalloon(['#17a589', '#7dffd6', '#ffffff', '#0f4a42'], '📚 교과서 모니터링단 결과보고회', '12월 4일(금)', 'monitorReport', 10.8, 14.5, -5.5, 2.5, -0.08);   // 민원센터 위에서만 맴돌기
 
 /* ================= ❓ 교과서 OX 퀴즈 (안내데스크 오른쪽, 트리 옆 키오스크) ================= */
 let quizBubble = null;

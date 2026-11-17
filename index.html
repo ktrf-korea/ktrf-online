@@ -1897,12 +1897,14 @@ function showInfo(key) {
 document.getElementById('infoX').addEventListener('click', () => infoEl.classList.remove('show'));
 const raycaster = new THREE.Raycaster(), ndc = new THREE.Vector2();
 let downXY = null;
+let lastHitPoint = null;
 function pickSign(ev) {
   const r = renderer.domElement.getBoundingClientRect();
   ndc.set(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1);
   raycaster.setFromCamera(ndc, camera);
   const hit = raycaster.intersectObjects(signMeshes, false)[0];
-  return hit && hit.distance < 40 ? hit.object.userData.dept : null;
+  lastHitPoint = hit ? hit.point.clone() : null;
+  return hit && hit.distance < (hit.object.userData.far ? 90 : 40) ? hit.object.userData.dept : null;
 }
 renderer.domElement.addEventListener('pointerdown', e => { downXY = [e.clientX, e.clientY]; });
 renderer.domElement.addEventListener('pointerup', e => {
@@ -1910,6 +1912,7 @@ renderer.domElement.addEventListener('pointerup', e => {
   const key = pickSign(e);
   if (key === 'quiz') { quizOpen(); return; }
   if (key === 'fairy') foundFairy();
+  if (key === 'monitorReport' && lastHitPoint) { goldBurst(lastHitPoint); setTimeout(() => showInfo(key), 3000); return; }
   if (key) showInfo(key); else infoEl.classList.remove('show');
 });
 renderer.domElement.addEventListener('pointermove', e => {
@@ -2210,6 +2213,7 @@ if (Date.now() < MON_DAY.getTime() + 86400e3) {
   });
   DEPT_INFO.monitorReport = { name: '2026 교과서 모니터링단 결과보고회', paras: [
     `📅 2026년 12월 4일(금)${dd > 0 ? `  ·  D-${dd}` : '  ·  오늘!'}`,
+    '✨ 모니터링단 위원님들, 1년 동안 고생 많으셨습니다!',
     '한 해 동안 교과서를 꼼꼼히 살펴 주신 교과서 모니터링단 여러분의 활동 결과를 함께 나누는 자리예요.'] };
   const g = new THREE.Group(); g.position.set(-7.46, 0.26, 19.25); g.rotation.y = Math.PI / 2; g.scale.setScalar(0.86); scene.add(g);
   box(1.86, 1.08, 0.06, M(0x15171b, { roughness: 0.3, metalness: 0.4 }), 0, 1.85, 0.03, g);
@@ -2238,7 +2242,7 @@ function hotAirBalloon(cols, l1, l2, dept, cx, cy, cz, r, sp) {
   const btx = new THREE.CanvasTexture(bc); btx.colorSpace = THREE.SRGBColorSpace;
   const ban = new THREE.Sprite(new THREE.SpriteMaterial({ map: btx, toneMapped: false })); ban.scale.set(5.8, 5.8 * 300 / 1024, 1); ban.position.y = -2.0; g.add(ban);
   g.scale.setScalar(2.3);   // 왕 크게
-  for (const m of [env, ban]) { m.userData.dept = dept; signMeshes.push(m); }
+  for (const m of [env, ban]) { m.userData.dept = dept; m.userData.far = true; signMeshes.push(m); }
   balloons.push({ g, cx, cy, cz, r, sp, ph: Math.random() * 6, env });
 }
 function updateBalloons(t) {
@@ -2248,8 +2252,60 @@ function updateBalloons(t) {
     b.env.rotation.y = t * 0.15;
   }
 }
-if (showEvent) hotAirBalloon(['#e8702a', '#ffd34d', '#ffffff', '#1f3a5f'], '🎉 2026 재단 성과보고회', '12월 17일(목) 노보텔 앰배서더 강남', 'event', 0, 17, 7, 8, 0.04);
+if (showEvent) hotAirBalloon(['#e8702a', '#ffd34d', '#ffffff', '#1f3a5f'], '🎉 2026 재단 성과보고회', '12월 17일(목) 노보텔 앰배서더 강남', 'event', -7, 17, 8, 7, 0.04);   // 민원센터 쪽(오른쪽)으로는 안 감
 if (DEPT_INFO.monitorReport) hotAirBalloon(['#17a589', '#7dffd6', '#ffffff', '#0f4a42'], '📚 교과서 모니터링단 결과보고회', '12월 4일(금)', 'monitorReport', 10.8, 14.5, -5.5, 2.5, -0.08);   // 민원센터 위에서만 맴돌기
+
+/* ================= ✨ 금빛 가루 팡! ================= */
+const GOLDS = [0xffd34d, 0xf5c542, 0xffe9a0, 0xe8b84a, 0xfff3c4, 0xffffff];
+const goldGeo = new THREE.PlaneGeometry(0.16, 0.16), goldMats = GOLDS.map(c => new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide, transparent: true, toneMapped: false }));
+const goldBits = []; let goldLast = performance.now();
+function goldBurst(at) {
+  for (let i = 0; i < 220; i++) {
+    const m = new THREE.Mesh(goldGeo, goldMats[i % goldMats.length].clone());
+    const th = Math.random() * Math.PI * 2, ph = Math.acos(Math.random() * 2 - 1), sp = 3 + Math.random() * 9;
+    m.position.copy(at); m.scale.setScalar(0.6 + Math.random() * 1.4);
+    m.rotation.set(Math.random() * 6, Math.random() * 6, Math.random() * 6);
+    m.userData = { v: new THREE.Vector3(Math.sin(ph) * Math.cos(th) * sp, Math.abs(Math.cos(ph)) * sp * 0.9 + 2, Math.sin(ph) * Math.sin(th) * sp), spin: Math.random() * 10 - 5, life: 0, max: 3 + Math.random() * 2.5 };
+    scene.add(m); goldBits.push(m);
+  }
+  // 반짝이는 빛 링
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.6, 32), new THREE.MeshBasicMaterial({ color: 0xfff3c4, transparent: true, side: THREE.DoubleSide, toneMapped: false }));
+  ring.position.copy(at); ring.lookAt(camera.position); ring.userData = { ring: true, life: 0, max: 0.7 }; scene.add(ring); goldBits.push(ring);
+  sparkleSound();
+  // 감사 문구가 금빛으로 떠오름
+  const c = document.createElement('canvas'); c.width = 1400; c.height = 380; const g = c.getContext('2d');
+  g.fillStyle = 'rgba(31,58,95,0.9)'; g.beginPath(); if (g.roundRect) g.roundRect(8, 8, 1384, 364, 70); else g.rect(8, 8, 1384, 364); g.fill();
+  g.lineWidth = 10; g.strokeStyle = '#ffd34d'; g.stroke();
+  g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#ffe9a0'; g.shadowColor = '#ffd34d'; g.shadowBlur = 22;
+  const m1 = '✨ 모니터링단 위원님들,', m2 = '1년 동안 고생 많으셨습니다! ✨';
+  fitText(g, m1, 120, 1300, '900'); g.fillText(m1, 700, 118);
+  fitText(g, m2, 120, 1300, '900'); g.fillText(m2, 700, 262);
+  const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, depthTest: false, toneMapped: false }));
+  s.renderOrder = 20; s.position.copy(at); s.scale.set(15, 15 * 380 / 1400, 1);
+  s.userData = { thanks: true, life: 0, max: 5.5, y0: at.y }; scene.add(s); goldBits.push(s);
+}
+function sparkleSound() {
+  if (!soundOn || !actx) return;
+  const t0 = actx.currentTime + 0.02;
+  [84, 88, 91, 96, 100, 103].forEach((m, i) => musicBox(m, t0 + i * 0.07, 0.09, master));
+}
+function updateGold() {
+  const nowT = performance.now(), dt = Math.min(0.05, (nowT - goldLast) / 1000); goldLast = nowT;
+  for (let i = goldBits.length - 1; i >= 0; i--) {
+    const m = goldBits[i], u = m.userData; u.life += dt;
+    if (u.ring) { m.scale.setScalar(1 + u.life * 18); m.material.opacity = Math.max(0, 1 - u.life / u.max); }
+    else if (u.thanks) { m.position.y = Math.max(3.5, u.y0 - 4.2 - u.life * 0.35); m.material.opacity = Math.min(1, u.life * 4, (u.max - u.life) / 1.2); }
+    else {
+      u.v.multiplyScalar(1 - 1.6 * dt); u.v.y -= 5.5 * dt;
+      if (u.v.y < -2.2) u.v.y = -2.2;   // 천천히 팔랑팔랑
+      m.position.addScaledVector(u.v, dt); m.position.x += Math.sin(u.life * 5 + i) * 0.01;
+      m.rotation.x += u.spin * dt; m.rotation.y += u.spin * 0.7 * dt;
+      m.material.opacity = Math.min(1, (u.max - u.life) / 1.0);
+    }
+    if (u.life >= u.max || m.position.y < 0) { scene.remove(m); m.material.dispose(); if (u.ring) m.geometry.dispose(); if (u.thanks) m.material.map.dispose(); goldBits.splice(i, 1); }
+  }
+}
 
 /* ================= ❓ 교과서 OX 퀴즈 (안내데스크 오른쪽, 트리 옆 키오스크) ================= */
 let quizBubble = null;
@@ -3466,6 +3522,7 @@ function animate() {
   updateAgents(t);
   updateTour();
   updateBalloons(performance.now() / 1000);
+  updateGold();
   if (quizBubble) quizBubble.position.y = 1.95 + Math.sin(performance.now() / 600) * 0.05;
   updateRemotes(dt);
   if (myPet) { myPet.ch.visible = mode === 'walk'; if (mode === 'walk') updateCompanion(myPet, player, !!sitting, dt); }

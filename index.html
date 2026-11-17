@@ -2217,6 +2217,40 @@ if (Date.now() < MON_DAY.getTime() + 86400e3) {
   sc.position.set(0, 1.85, 0.065); sc.userData.dept = 'monitorReport'; g.add(sc); signMeshes.push(sc);
 }
 
+/* ================= 🎈 하늘의 열기구 2개 (행사 안내 현수막) ================= */
+const balloons = [];
+function hotAirBalloon(cols, l1, l2, dept, cx, cy, cz, r, sp) {
+  const g = new THREE.Group(); scene.add(g);
+  const stripe = canvasTex(512, 256, (c, w, h) => { const n = 12; for (let i = 0; i < n; i++) { c.fillStyle = cols[i % cols.length]; c.fillRect(i * w / n, 0, w / n + 1, h); } });
+  const prof = []; for (let i = 0; i <= 20; i++) { const a = i / 20; const y = -1.9 + a * 3.9; const rad = 1.75 * Math.sin(Math.PI * Math.pow(0.12 + 0.88 * a, 1.4)); prof.push(new THREE.Vector2(Math.max(0.02, rad), y)); }
+  const env = new THREE.Mesh(new THREE.LatheGeometry(prof, 24), new THREE.MeshStandardMaterial({ map: stripe, roughness: 0.6 })); env.position.y = 2.6; g.add(env);
+  const rope = M(0x6b5240);
+  for (const [sx, sz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) { const l = box(0.025, 1.3, 0.025, rope, sx * 0.3, 0.2, sz * 0.3, g); l.rotation.set(sz * 0.12, 0, -sx * 0.12); }
+  box(0.7, 0.5, 0.7, M(0x9a6a3a, { roughness: 0.9 }), 0, -0.6, 0, g);
+  box(0.76, 0.06, 0.76, M(0x6b4a2a), 0, -0.33, 0, g);
+  // 바구니 아래 늘어뜨린 현수막 (항상 정면을 봄)
+  const bc = document.createElement('canvas'); bc.width = 1024; bc.height = 300; const b = bc.getContext('2d');
+  b.fillStyle = '#ffffff'; b.beginPath(); if (b.roundRect) b.roundRect(6, 6, 1012, 288, 30); else b.rect(6, 6, 1012, 288); b.fill();
+  b.lineWidth = 10; b.strokeStyle = cols[0]; b.stroke();
+  b.textAlign = 'center'; b.textBaseline = 'middle'; b.fillStyle = '#1f3a5f';
+  fitText(b, l1, 92, 940, '900'); b.fillText(l1, 512, 112);
+  b.fillStyle = cols[0]; fitText(b, l2, 64, 940); b.fillText(l2, 512, 222);
+  const btx = new THREE.CanvasTexture(bc); btx.colorSpace = THREE.SRGBColorSpace;
+  const ban = new THREE.Sprite(new THREE.SpriteMaterial({ map: btx, toneMapped: false })); ban.scale.set(5.8, 5.8 * 300 / 1024, 1); ban.position.y = -2.0; g.add(ban);
+  g.scale.setScalar(2.3);   // 왕 크게
+  for (const m of [env, ban]) { m.userData.dept = dept; signMeshes.push(m); }
+  balloons.push({ g, cx, cy, cz, r, sp, ph: Math.random() * 6, env });
+}
+function updateBalloons(t) {
+  for (const b of balloons) {
+    const a = b.ph + t * b.sp;
+    b.g.position.set(b.cx + Math.cos(a) * b.r, b.cy + Math.sin(t * 0.6 + b.ph) * 0.4, b.cz + Math.sin(a) * b.r * 0.5);
+    b.env.rotation.y = t * 0.15;
+  }
+}
+if (showEvent) hotAirBalloon(['#e8702a', '#ffd34d', '#ffffff', '#1f3a5f'], '🎉 2026 성과보고회', '12월 17일(목) 노보텔 앰배서더 강남', 'event', 10, 17, 4, 10, 0.04);
+if (DEPT_INFO.monitorReport) hotAirBalloon(['#17a589', '#7dffd6', '#ffffff', '#0f4a42'], '📚 교과서 모니터링단 결과보고회', '12월 4일(금)', 'monitorReport', -13, 14.5, 2, 8, -0.05);
+
 /* ================= ❓ 교과서 OX 퀴즈 (안내데스크 오른쪽, 트리 옆 키오스크) ================= */
 let quizBubble = null;
 const QUIZ_POOL = [
@@ -3431,6 +3465,7 @@ function animate() {
   updateCall(t);
   updateAgents(t);
   updateTour();
+  updateBalloons(performance.now() / 1000);
   if (quizBubble) quizBubble.position.y = 1.95 + Math.sin(performance.now() / 600) * 0.05;
   updateRemotes(dt);
   if (myPet) { myPet.ch.visible = mode === 'walk'; if (mode === 'walk') updateCompanion(myPet, player, !!sitting, dt); }

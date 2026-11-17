@@ -2213,7 +2213,7 @@ if (Date.now() < MON_DAY.getTime() + 86400e3) {
   });
   DEPT_INFO.monitorReport = { name: '2026 교과서 모니터링단 결과보고회', paras: [
     `📅 2026년 12월 4일(금)${dd > 0 ? `  ·  D-${dd}` : '  ·  오늘!'}`,
-    '✨ 모니터링단 위원님들, 1년 동안 고생 많으셨습니다!',
+    '✨ 모니터링단 위원님들, 올 한 해 고생 많으셨습니다!',
     '한 해 동안 교과서를 꼼꼼히 살펴 주신 교과서 모니터링단 여러분의 활동 결과를 함께 나누는 자리예요.'] };
   const g = new THREE.Group(); g.position.set(-7.46, 0.26, 19.25); g.rotation.y = Math.PI / 2; g.scale.setScalar(0.86); scene.add(g);
   box(1.86, 1.08, 0.06, M(0x15171b, { roughness: 0.3, metalness: 0.4 }), 0, 1.85, 0.03, g);
@@ -2277,7 +2277,7 @@ function goldBurst(at) {
   g.fillStyle = 'rgba(31,58,95,0.9)'; g.beginPath(); if (g.roundRect) g.roundRect(8, 8, 1384, 364, 70); else g.rect(8, 8, 1384, 364); g.fill();
   g.lineWidth = 10; g.strokeStyle = '#ffd34d'; g.stroke();
   g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#ffe9a0'; g.shadowColor = '#ffd34d'; g.shadowBlur = 22;
-  const m1 = '✨ 모니터링단 위원님들,', m2 = '1년 동안 고생 많으셨습니다! ✨';
+  const m1 = '✨ 모니터링단 위원님들,', m2 = '올 한 해 고생 많으셨습니다! ✨';
   fitText(g, m1, 120, 1300, '900'); g.fillText(m1, 700, 118);
   fitText(g, m2, 120, 1300, '900'); g.fillText(m2, 700, 262);
   const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace;

@@ -211,6 +211,7 @@
   <button id="talkBtn">💬 말하기</button>
   <button id="shotBtn" class="shot">📷 인증샷</button>
   <button id="lookBtn">👕 꾸미기</button>
+  <button id="viewBtn">👁️ 1인칭</button>
   <button id="sitBtn">🪑 앉기</button>
   <button id="hiBtn" hidden>✋ 하이파이브</button>
   <button id="teaBtn">☕ 차 한 잔</button>
@@ -2389,6 +2390,7 @@ addEventListener('keydown', e => {
   if (mode !== 'walk' || /INPUT|TEXTAREA/.test(e.target.tagName)) return;
   keys[e.code] = true;
   if (e.code === 'Space') { e.preventDefault(); toggleSit(); }
+  if (e.code === 'KeyV') setView(!firstPerson);
   if (e.code === 'Digit1') highfive();
   if (e.code === 'Digit2') tea();
 });
@@ -2410,6 +2412,28 @@ const endJoy = e => { if (e.pointerId !== joyId) return; joyId = null; jx = jy =
 joyEl.addEventListener('pointerup', endJoy); joyEl.addEventListener('pointercancel', endJoy);
 
 // 들어가기 / 나가기
+/* ================= 👁️ 1인칭 / 🎥 3인칭 ================= */
+let firstPerson = false;
+function setView(fp) {
+  firstPerson = fp;
+  const ry = player.rotation.y, fx = Math.sin(ry), fz = Math.cos(ry);
+  if (fp) {
+    const eye = new THREE.Vector3(player.position.x, sitting ? 1.15 : 1.55, player.position.z);
+    controls.minDistance = controls.maxDistance = 0.05; controls.enableZoom = false;
+    controls.minPolarAngle = 0.35; controls.maxPolarAngle = 2.5;
+    controls.target.copy(eye); camera.position.set(eye.x - fx * 0.05, eye.y, eye.z - fz * 0.05);
+    player.visible = false;
+  } else {
+    controls.minDistance = 2; controls.maxDistance = 14; controls.enableZoom = true;
+    controls.minPolarAngle = 0; controls.maxPolarAngle = 1.15;
+    controls.target.set(player.position.x, 1.1, player.position.z);
+    camera.position.set(player.position.x - fx * 4.2, 3.9, player.position.z - fz * 4.2);
+    if (mode === 'walk') player.visible = true;
+  }
+  camera.fov = fp ? 68 : 45; camera.updateProjectionMatrix();
+  controls.update();
+  const b = $('viewBtn'); if (b) b.textContent = fp ? '🎥 3인칭' : '👁️ 1인칭';
+}
 function enterWalk() {
   mode = 'walk'; player.visible = true;
   player.position.set(-4, 0, 19.5); player.rotation.y = Math.PI;
@@ -2422,6 +2446,7 @@ function enterWalk() {
 }
 function exitWalk() {
   if (sitting) standUp();
+  if (firstPerson) setView(false);
   mode = 'view'; player.visible = false;
   controls.minDistance = 3; controls.maxDistance = 95; controls.maxPolarAngle = Math.PI * 0.47; controls.autoRotate = true;
   zonesEl.style.display = 'flex'; actionsEl.style.display = 'none'; joyEl.style.display = 'none'; document.body.classList.remove('walking');
@@ -3116,6 +3141,7 @@ function updateTour() {
   $('tourBar').style.width = Math.min(100, (performance.now() - tourStart) / (2200 + TOUR_HOLD) * 100) + '%';
 }
 $('tourBtn').addEventListener('click', tourBegin);
+$('viewBtn').addEventListener('click', () => { setView(!firstPerson); toast(firstPerson ? '👁️ 1인칭: 화면을 끌어서 둘러보세요' : '🎥 3인칭으로 돌아왔어요'); });
 $('qrX').addEventListener('click', () => document.body.classList.add('qrOff'));
 $('tourNext').addEventListener('click', () => tourShow(tourI + 1));
 $('tourStop').addEventListener('click', () => tourEnd(false));
@@ -3201,9 +3227,9 @@ function updatePlayer(dt) {
   } else if (sitting) u.arms[1].rotation.x = 0;
   if (!(u.actionUntil > now)) { u.arms[0].rotation.z = 0; u.arms[1].rotation.z = 0; }
 
-  // 카메라가 나를 따라오기
+  // 카메라가 나를 따라오기 (1인칭이면 눈높이)
   if (!fly) {
-    const desired = new THREE.Vector3(player.position.x, 1.1, player.position.z);
+    const desired = new THREE.Vector3(player.position.x, firstPerson ? (sitting ? 1.15 : 1.55) : 1.1, player.position.z);
     const delta = desired.sub(controls.target);
     controls.target.add(delta); camera.position.add(delta);
   }

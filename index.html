@@ -2947,7 +2947,7 @@ function onPet(p) {
 
 // 하이파이브 / 차 한 잔
 function nearby(r) {
-  return [...people, walker].filter(c => Math.hypot(c.position.x - player.position.x, c.position.z - player.position.z) < r);
+  return [...people, walker].filter(c => !c.userData.monitor && Math.hypot(c.position.x - player.position.x, c.position.z - player.position.z) < r);
 }
 function npcAct(c, dur) {
   const u = c.userData;
@@ -3130,7 +3130,7 @@ function greetLine(c) {
   if (c === chairman) return '반갑습니다. 잘 오셨어요 😊';
   if (c === cleaner) return '어서 오세요~ 🧹';
   if (c === agent1 || c === agent2) return '안녕하세요, 민원센터입니다 😊';
-  if (c.userData.monitor) return '안녕하세요! 교과서 모니터링단 담당자입니다 😊';
+  if (c.userData.monitor) return '모니터링 담당자입니다.';
   return GREET_LINES[Math.floor(Math.random() * GREET_LINES.length)];
 }
 const greeters = [...people, cleaner];

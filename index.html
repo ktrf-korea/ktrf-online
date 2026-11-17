@@ -14,6 +14,13 @@
     color: #1f3a5f; line-height: 1.4; }
   #title b { display: block; font-size: 16px; }
   #title span { font-size: 12px; color: #4a7a52; }
+  #qrBox { position: fixed; left: 14px; bottom: 74px; z-index: 6; background: #fff; border-radius: 16px; padding: 10px 10px 8px; text-align: center;
+    box-shadow: 0 4px 18px rgba(0,0,0,.18); font-family: sans-serif; color: #1f3a5f; width: 150px; }
+  #qrBox img { width: 130px; height: 130px; image-rendering: pixelated; display: block; margin: 0 auto; }
+  #qrBox b { display: block; font-size: 12.5px; margin-top: 4px; white-space: nowrap; letter-spacing: -0.3px; } #qrBox small { font-size: 11px; color: #6b7a88; }
+  #qrBox .x { position: absolute; top: 2px; right: 6px; border: none; background: none; color: #9aa3ad; font-size: 14px; cursor: pointer; }
+  body.walking #qrBox, body.qrOff #qrBox, body.shooting #qrBox { display: none; }
+  @media (max-width: 800px), (max-height: 560px) { #qrBox { display: none; } }
   #zones { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%);
     display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; width: min(96vw, 720px); }
   #zones button { border: none; padding: 9px 14px; border-radius: 999px; font-size: 13px; font-family: inherit;
@@ -167,6 +174,7 @@
 <button id="sound">🔈 소리 켜기</button>
 <button id="musicBtn">🎵 드뷔시</button>
 <div id="hint">끌어서 둘러보기 · 두 손가락으로 확대</div>
+<div id="qrBox"><button class="x" id="qrX">✕</button><img alt="QR 코드" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACUAAAAlCAAAAADg9X/fAAABHklEQVQ4EY3BsW3EABAEMU7/Ra9PAoxPRTYfNB80HzQfNOS11jQ5y2toaE6LNTStOQ0NLdbIWiNrsYaGFmuxmKa1WENDizWNvKbFGhqa02gZYs1paMhrrbXWWstraH4yTVjz09CyWNZyRtMyNMS01mhazhoNzYlpNE1DWOY05EyTNY8wNDSPLCPLZB6ZR3NitJZlNI0YmtOyFouFocXQ0Fom1lqLtaY5zSPLZDLCZM1pHk1raFpzWsxpaFlYC9Naa82jeWQta2hZjObRnIxY1si/eTQ/WUyskTM05LWGhljLmtPQnJY1j9bIMjS0WPPKWc5iaGix1jQxMZmGhhZrmYxMa1pDQ3OaV3Oy1prTkNeyFhOLaU7zQfNB80HzwR/nhQQQKRb81AAAAABJRU5ErkJggg=="><b>📱 휴대폰으로 들어오기</b><small>카메라로 찍어 보세요</small></div>
 <div id="zones">
   <button id="enterBtn" class="enter">🚶 들어가기</button>
   <button id="tourBtn" class="tour">🧭 자동 투어</button>
@@ -2388,7 +2396,7 @@ function enterWalk() {
   mode = 'walk'; player.visible = true;
   player.position.set(-4, 0, 19.5); player.rotation.y = Math.PI;
   controls.autoRotate = false; controls.minDistance = 2; controls.maxDistance = 14; controls.maxPolarAngle = 1.15;
-  zonesEl.style.display = 'none'; actionsEl.style.display = 'flex';
+  zonesEl.style.display = 'none'; actionsEl.style.display = 'flex'; document.body.classList.add('walking');
   if (coarse) joyEl.style.display = 'block';
   hintEl.textContent = HINT_WALK;
   flyTo({ p: [-4, 4.8, 22.5], t: [-4, 1.1, 19.5] });
@@ -2398,7 +2406,7 @@ function exitWalk() {
   if (sitting) standUp();
   mode = 'view'; player.visible = false;
   controls.minDistance = 3; controls.maxDistance = 95; controls.maxPolarAngle = Math.PI * 0.47; controls.autoRotate = true;
-  zonesEl.style.display = 'flex'; actionsEl.style.display = 'none'; joyEl.style.display = 'none';
+  zonesEl.style.display = 'flex'; actionsEl.style.display = 'none'; joyEl.style.display = 'none'; document.body.classList.remove('walking');
   hintEl.textContent = HINT_VIEW;
   document.querySelectorAll('#zones button[data-z]').forEach(x => x.classList.toggle('on', x.dataset.z === 'all'));
   flyTo(views.all);
@@ -3090,6 +3098,7 @@ function updateTour() {
   $('tourBar').style.width = Math.min(100, (performance.now() - tourStart) / (2200 + TOUR_HOLD) * 100) + '%';
 }
 $('tourBtn').addEventListener('click', tourBegin);
+$('qrX').addEventListener('click', () => document.body.classList.add('qrOff'));
 $('tourNext').addEventListener('click', () => tourShow(tourI + 1));
 $('tourStop').addEventListener('click', () => tourEnd(false));
 $('tourText').addEventListener('click', e => {   // 링크 누르면 투어 잠깐 멈춤

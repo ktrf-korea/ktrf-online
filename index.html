@@ -34,11 +34,23 @@
   #musicBtn { position: fixed; top: 62px; right: 14px; z-index: 5; border: none; padding: 7px 13px; border-radius: 999px; font: 13px sans-serif;
     background: rgba(255,255,255,0.92); color: #1f3a5f; box-shadow: 0 2px 10px rgba(0,0,0,0.12); cursor: pointer; }
   .lblHint { font-size: 11.5px; color: #9aa6b2; font-weight: normal; margin-left: 4px; }
-  #keysPanel { position: fixed; right: 14px; top: 64px; z-index: 8; display: none; padding: 12px 16px; border-radius: 14px; background: rgba(255,255,255,.96); color: #1f3a5f; font: 13px sans-serif; box-shadow: 0 4px 16px rgba(0,0,0,.15); }
-  #keysPanel.show { display: block; } #keysPanel b { display: block; margin-bottom: 6px; font-size: 14px; } #keysPanel p { margin: 5px 0; }
-  #keysPanel kbd { display: inline-block; min-width: 18px; padding: 2px 6px; border-radius: 6px; background: #eef1f4; border: 1px solid #d5dbe1; font: bold 12px sans-serif; text-align: center; margin-right: 3px; }
+  #helpBtn { display: none; border: none; padding: 10px 16px; border-radius: 999px; font: bold 15px sans-serif; background: #e8742a; color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.15); cursor: pointer; }
+  body.walking #helpBtn { display: inline-block; }
+  @media (max-width: 600px) { #helpBtn { padding: 9px 12px; } #helpBtn span { display: none; } #tipCard { bottom: 190px; } }
+  #guide { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 20; display: none; width: min(88vw, 400px); padding: 20px 22px 16px; border-radius: 24px; background: rgba(255,255,255,.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 16px 48px rgba(0,0,0,.25); color: #1f3a5f; font-family: sans-serif; }
+  #guide.show { display: block; } #guide .gh { display: flex; justify-content: space-between; align-items: center; } #guide .gh b { font-size: 21px; }
+  #guide .gh button { border: none; background: none; font-size: 20px; color: #6a7a8c; cursor: pointer; }
+  #guideB { margin: 12px 0 16px; font-size: 16.5px; line-height: 1.7; } #guide .gf { display: flex; justify-content: space-between; align-items: center; }
+  #guideDots i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #c9d2dc; margin-right: 5px; } #guideDots i.on { background: #e8742a; width: 20px; border-radius: 4px; }
+  #guideNext { border: none; border-radius: 999px; padding: 10px 20px; background: #1f3a5f; color: #fff; font: bold 15px sans-serif; cursor: pointer; }
+  #tipCard { position: fixed; left: 50%; bottom: 96px; transform: translate(-50%, 12px); z-index: 11; width: max-content; max-width: 90vw; padding: 12px 18px; border-radius: 18px; background: rgba(20,28,44,.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: #fff; font-family: sans-serif; opacity: 0; pointer-events: none; transition: opacity .5s, transform .5s; text-align: center; }
+  #tipCard.show { opacity: 1; transform: translate(-50%, 0); } #tipCard .tl { font-size: 12.5px; color: #ffd9a0; font-weight: bold; } #tipCard p { margin: 4px 0 0; font-size: 15px; line-height: 1.5; }
+  body.skyView #tipCard, body.skyView #guide { display: none !important; }
+  #keysPanel { position: fixed; right: 14px; top: 64px; z-index: 13; display: none; padding: 18px 22px; border-radius: 18px; background: #fff; color: #1f3a5f; font: 16px sans-serif; box-shadow: 0 10px 34px rgba(0,0,0,.28); border: 2px solid #1f3a5f; min-width: 300px; }
+  #keysPanel.show { display: block; } #keysPanel b { display: block; margin-bottom: 10px; font-size: 18px; } #keysPanel p { margin: 9px 0; font-weight: 600; }
+  #keysPanel kbd { display: inline-block; min-width: 28px; padding: 4px 9px; border-radius: 8px; background: #1f3a5f; color: #fff; border: none; border-bottom: 3px solid #0f2238; font: bold 15px sans-serif; text-align: center; margin-right: 5px; }
   #keysPanel small { opacity: .6; }
-  #keysBtn { display: none; border: none; padding: 10px 14px; border-radius: 999px; font: 14px sans-serif; background: rgba(255,255,255,.92); color: #1f3a5f; box-shadow: 0 2px 10px rgba(0,0,0,.12); cursor: pointer; }
+  #keysBtn { display: none; border: none; padding: 10px 16px; border-radius: 999px; font: bold 15px sans-serif; background: #1f3a5f; color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.12); cursor: pointer; }
   @media (pointer: fine) { body.walking #keysBtn { display: inline-block; } body.walking #hint { display: none; } }
   #topCtl { position: fixed; top: 14px; right: 14px; z-index: 5; display: flex; gap: 8px; align-items: center; }
   #topCtl > button { position: static !important; top: auto !important; right: auto !important; }
@@ -309,11 +321,13 @@
 <body>
 <div id="loading">공간을 준비하고 있어요…</div>
 <div id="title"><b><a id="homeLink" href="https://textbook.ac/" target="_blank" rel="noopener">한국교과서연구재단 <small>🏠 홈페이지 →</small></a></b><span>온라인 공간 · 조용히 머무는 곳</span><span id="online">혼자 둘러보는 중</span><a id="evt" href="https://forms.gle/XpEaMaCuX1Jbn7aF8" target="_blank" rel="noopener">🎉 12.17 성과보고회 · 사전 참석 등록 →</a></div>
-<div id="topCtl"><button id="keysBtn">⌨️ 단축키</button><button id="musicBtn">🎵 드뷔시</button><button id="sound">🔈 소리 켜기</button></div>
+<div id="topCtl"><button id="helpBtn">❓<span> 사용법</span></button><button id="keysBtn">⌨️ 단축키</button><button id="musicBtn">🎵 드뷔시</button><button id="sound">🔈 소리 켜기</button></div>
 <div id="hint">끌어서 둘러보기 · 두 손가락으로 확대</div>
+<div id="guide"><div class="gh"><b id="guideT"></b><button id="guideX" aria-label="닫기">✕</button></div><div id="guideB"></div><div class="gf"><span id="guideDots"></span><button id="guideNext">다음 ›</button></div></div>
+<div id="tipCard"><span class="tl">💡 이렇게도 한번 해보세요</span><p id="tipText"></p></div>
 <div id="keysPanel"><b>⌨️ 단축키 설명</b>
   <p><kbd>↑↓←→</kbd> <kbd>W A S D</kbd> 걷기</p><p><kbd>클릭</kbd> 바닥을 누르면 거기로 걸어가요</p><p><kbd>Space</kbd> 점프</p>
-  <p><kbd>C</kbd> 앉기 · 일어나기</p><p><kbd>V</kbd> 1인칭 · 3인칭</p><p><kbd>2</kbd> 차 한 잔</p><p><kbd>M</kbd> 마시멜로 굽기 <small>(모닥불 앞)</small></p></div>
+  <p><kbd>C</kbd> 앉기 · 일어나기</p><p><kbd>V</kbd> 1인칭 · 3인칭</p><p><kbd>2</kbd> 차 한 잔</p><p><kbd>Esc</kbd> 창 닫기</p></div>
 <div id="qrBox"><button class="x" id="qrX">✕</button><img alt="QR 코드" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACUAAAAlCAAAAADg9X/fAAABHklEQVQ4EY3BsW3EABAEMU7/Ra9PAoxPRTYfNB80HzQfNOS11jQ5y2toaE6LNTStOQ0NLdbIWiNrsYaGFmuxmKa1WENDizWNvKbFGhqa02gZYs1paMhrrbXWWstraH4yTVjz09CyWNZyRtMyNMS01mhazhoNzYlpNE1DWOY05EyTNY8wNDSPLCPLZB6ZR3NitJZlNI0YmtOyFouFocXQ0Fom1lqLtaY5zSPLZDLCZM1pHk1raFpzWsxpaFlYC9Naa82jeWQta2hZjObRnIxY1si/eTQ/WUyskTM05LWGhljLmtPQnJY1j9bIMjS0WPPKWc5iaGix1jQxMZmGhhZrmYxMa1pDQ3OaV3Oy1prTkNeyFhOLaU7zQfNB80HzwR/nhQQQKRb81AAAAABJRU5ErkJggg=="><b>📱 휴대폰으로 들어오기</b><small>카메라로 찍어 보세요</small></div>
 <div id="zones">
   <button id="enterBtn" class="enter">🚶 들어가기</button>
@@ -2120,6 +2134,7 @@ renderer.domElement.addEventListener('pointerup', e => {
   if (key === 'selfie') { selfie(); return; }
   if (key === 'secret') { toggleSecretDoor(); return; }
   if (key === 'fireDoor') { toggleFireDoor(); return; }
+  if (key === 'woodpile') { pickLog(); return; }
   if (key === 'fairy') foundFairy();
   if (key === 'monitorReport' && lastHitPoint) { goldBurst(lastHitPoint, !lastHitFar); setTimeout(() => showInfo(key), lastHitFar ? 3000 : 1600); return; }
   if (key) showInfo(key); else { infoEl.classList.remove('show'); tapToWalk(e); }
@@ -2974,11 +2989,28 @@ const fireFx = { flames: [], embers: [], glow: null, logs: [], stars: [] };
     const band = y0 => x => y0 + Math.sin(x / w * Math.PI * 2 + 0.6) * h * 0.14;
     const by = band(h * 0.22);
     for (let i = 0; i < 2600; i++) { const x = Math.random() * w, y = Math.random() * h * 0.49, r = Math.random() < 0.03 ? 1.8 : Math.random() * 1.1 + 0.3; c.fillStyle = `rgba(255,${235 + Math.random() * 20 | 0},${210 + Math.random() * 45 | 0},${0.35 + Math.random() * 0.65})`; c.fillRect(x, y, r, r); }
-    for (let i = 0; i < 2200; i++) { const x = Math.random() * w, y = by(x) + (Math.random() - 0.5) * 140 * Math.random(); c.fillStyle = `rgba(230,225,255,${0.3 + Math.random() * 0.6})`; c.fillRect(x, y, 1, 1); }
+    { const X0 = w * 0.12, X1 = w * 0.62;   // 은하수는 하늘 한쪽에만
+      for (let i = 0; i < 900; i++) { const x = X0 + Math.random() * (X1 - X0), y = by(x) + (Math.random() - 0.5) * 70, r = 18 + Math.random() * 30, a = 0.035 * Math.sin((x - X0) / (X1 - X0) * Math.PI);
+        const gg = c.createRadialGradient(x, y, 0, x, y, r); gg.addColorStop(0, `rgba(205,200,255,${a})`); gg.addColorStop(1, 'rgba(205,200,255,0)'); c.fillStyle = gg; c.fillRect(x - r, y - r, r * 2, r * 2); }
+      for (let i = 0; i < 5200; i++) { const x = X0 + Math.random() * (X1 - X0), y = by(x) + (Math.random() - 0.5) * 120 * Math.random(); c.fillStyle = `rgba(235,230,255,${(0.25 + Math.random() * 0.6) * Math.sin((x - X0) / (X1 - X0) * Math.PI)})`; c.fillRect(x, y, Math.random() < 0.1 ? 2 : 1, 1); }
+      for (let i = 0; i < 260; i++) { const x = X0 + Math.random() * (X1 - X0), y = by(x) + 6 + (Math.random() - 0.5) * 14, r = 6 + Math.random() * 10; const gg = c.createRadialGradient(x, y, 0, x, y, r); gg.addColorStop(0, 'rgba(4,5,12,.18)'); gg.addColorStop(1, 'rgba(4,5,12,0)'); c.fillStyle = gg; c.fillRect(x - r, y - r, r * 2, r * 2); }   // 먼지띠
+    }
     c.fillStyle = '#0a0a10'; c.beginPath(); c.moveTo(0, h * 0.5); for (let x = 0; x <= w; x += 16) c.lineTo(x, h * 0.5 - 18 - Math.abs(Math.sin(x / 170)) * 40 - Math.sin(x / 61) * 8); c.lineTo(w, h * 0.5 + 4); c.lineTo(0, h * 0.5 + 4); c.fill();   // 먼 산
   });
   fireFx.sky = new THREE.Mesh(new THREE.SphereGeometry(85, 48, 24), new THREE.MeshBasicMaterial({ map: skyTex, side: THREE.BackSide, fog: false, toneMapped: false, depthWrite: false }));
   fireFx.sky.position.set(FIRE.x, 0, FIRE.z); fireFx.sky.visible = false; fireFx.sky.renderOrder = -1; scene.add(fireFx.sky);
+  // 🪵 장작더미 (장작을 주워 모닥불에 넣어 보세요)
+  { const WP = { x: FIRE.x + Math.sin(Math.PI * 1.75) * 6.3, z: FIRE.z + Math.cos(Math.PI * 1.75) * 6.3 };
+    const g = new THREE.Group(); g.position.set(WP.x, 0, WP.z); g.rotation.y = 0.6; scene.add(g);
+    const lm = [M(0x7a4a2a, { roughness: 0.9 }), M(0x8a5a32, { roughness: 0.9 }), M(0x6a3e22, { roughness: 0.9 })], endM = M(0xd9b07a, { roughness: 0.8 });
+    let k = 0; for (let row = 0; row < 4; row++) for (let i = 0; i < 4 - row; i++) {
+      const lg = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.14, 1.2, 10), [lm[k++ % 3], endM, endM]); lg.rotation.x = Math.PI / 2; lg.position.set((i - (3 - row) / 2) * 0.28, 0.14 + row * 0.24, 0); g.add(lg); }
+    const sgTx = canvasTex(320, 96, (c, w, h) => { c.fillStyle = 'rgba(40,24,14,.85)'; c.fillRect(0, 0, w, h); c.fillStyle = '#ffe2b0'; c.font = `bold 44px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🪵 장작 줍기', w / 2, h / 2 + 2); });
+    const sg = new THREE.Sprite(new THREE.SpriteMaterial({ map: sgTx, transparent: true, depthWrite: false })); sg.scale.set(1.3, 0.39, 1); sg.position.set(0, 1.55, 0); g.add(sg);
+    const hit = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.4, 1.5), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })); hit.position.y = 0.6; g.add(hit);
+    for (const m of [hit, sg]) { m.userData.dept = 'woodpile'; signMeshes.push(m); }
+    colliders.push([WP.x - 0.75, WP.x + 0.75, WP.z - 0.75, WP.z + 0.75]); fireFx.woodpile = WP;
+  }
   // 모닥불 불빛 (광장에서만 켜져요)
   fireFx.light = new THREE.PointLight(0xff9a4a, 0, 18, 1.4); fireFx.light.position.set(FIRE.x, 1.1, FIRE.z); scene.add(fireFx.light);
   const fenceM = M(0x8a6a4a, { roughness: 0.8 });
@@ -3003,6 +3035,34 @@ const fireFx = { flames: [], embers: [], glow: null, logs: [], stars: [] };
   for (const m of [rb, hit]) { m.userData.dept = 'fireDoor'; signMeshes.push(m); }
   fireDoorCol = [29.6, 30.05, 4.95, 6.15]; colliders.push(fireDoorCol);
   box(0.22, 0.92, 1.3, M(0xeeeeec), 30.1, 2.56, 5.55);   // 문 위 벽 (빈틈 막기)
+}
+// 🪵 장작 들고 가서 모닥불에 쏙
+const carry = { log: null, fly: null }; var fireBoost = 0;
+function pickLog() {
+  if (mode !== 'walk') { toast('들어가기를 누른 뒤 장작을 주울 수 있어요'); return; }
+  if (sitting) { toast('일어나서 장작더미로 가 보세요'); return; }
+  const wp = fireFx.woodpile; if (Math.hypot(player.position.x - wp.x, player.position.z - wp.z) > 2.8) { toast('🪵 장작더미 가까이 가서 눌러 주세요'); return; }
+  if (carry.log) { toast('이미 장작을 들고 있어요. 모닥불 가까이 가 보세요 🔥'); return; }
+  const lg = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.11, 0.9, 10), [M(0x7a4a2a, { roughness: 0.9 }), M(0xd9b07a), M(0xd9b07a)]);
+  lg.rotation.z = Math.PI / 2; lg.position.set(0, 0.95, 0.38); player.add(lg); carry.log = lg;
+  toast('🪵 장작을 들었어요! 모닥불 가까이 가면 쏙 넣어요');
+}
+function updateLog(dt) {
+  if (carry.log && !carry.fly && Math.hypot(player.position.x - FIRE.x, player.position.z - FIRE.z) < 3.4) {   // 불 가까이 오면 던져 넣기
+    const wp = new THREE.Vector3(); carry.log.getWorldPosition(wp); player.remove(carry.log);
+    carry.log.position.copy(wp); carry.log.rotation.set(0, Math.random() * 3, Math.PI / 2); scene.add(carry.log);
+    carry.fly = { from: wp, t: 0 };
+  }
+  if (carry.fly) {
+    const f = carry.fly; f.t += dt / 0.7; const k = Math.min(1, f.t);
+    carry.log.position.set(f.from.x + (FIRE.x - f.from.x) * k, f.from.y + (0.35 - f.from.y) * k + Math.sin(Math.PI * k) * 1.2, f.from.z + (FIRE.z - f.from.z) * k);
+    carry.log.rotation.y += dt * 6;
+    if (k >= 1) {
+      scene.remove(carry.log); carry.log = null; carry.fly = null; fireBoost = 1;
+      toast(['🔥 활활! 불이 더 커졌어요', '🔥 타닥타닥… 장작이 잘 타요', '🔥 따뜻해졌어요! 한 개 더 넣어 볼까요?'][Math.random() * 3 | 0]);
+    }
+  }
+  if (fireBoost > 0) fireBoost = Math.max(0, fireBoost - dt / 9);
 }
 function toggleFireDoor(auto) {
   try { if (!actx) startAudio(); actx.resume(); } catch (e) {}
@@ -3113,15 +3173,19 @@ function updateMallow(dt) {
 }
 var musicQuiet = false;
 function updateFire(t, dt) {
+  try { updateTips(dt); } catch (e) {}
   try { updateOutdoor(t, dt); } catch (e) {}
+  try { updateMeteor(t, dt); } catch (e) {}
   fireDoorA += ((fireDoorOpen ? -1.7 : 0) - fireDoorA) * Math.min(1, dt * 3); fireDoor.rotation.y = fireDoorA;
   autoClose('fire', fireDoorOpen, 30.1, 5.55, toggleFireDoor, dt);
   fireDoor.userData.book.material.emissiveIntensity = 0.25 + (Math.sin(t * 2.2) + 1) * 0.25;
-  for (const f of fireFx.flames) f.material.uniforms.t.value = t;
+  try { updateLog(dt); } catch (e) {}
+  const fb = fireBoost * (0.85 + Math.sin(t * 9) * 0.15);
+  for (const f of fireFx.flames) { f.material.uniforms.t.value = t; f.scale.set(1 + fb * 0.4, 1 + fb * 0.75, 1); f.position.y = 0.95 * (1 + fb * 0.75); }
   if (auroraG.visible) for (const m of auroraG.children) m.material.uniforms.t.value = t;
   if (daySky.visible) daySky.rotation.z = t * 0.008;   // 하늘이 천천히 돌며 구름이 흘러가요
   fireFx.glow.material.opacity = 0.75 + Math.sin(t * 11) * 0.12 + Math.sin(t * 4.3) * 0.1;
-  fireFx.light.intensity = fireMoodOn ? 4.2 + Math.sin(t * 13) * 0.5 + Math.sin(t * 5.1) * 0.6 : 0;
+  fireFx.light.intensity = fireMoodOn ? (4.2 + Math.sin(t * 13) * 0.5 + Math.sin(t * 5.1) * 0.6) * (1 + fireBoost * 0.6) : 0;
   for (const e of fireFx.embers) { const u = e.userData; u.t += dt * u.sp; if (u.t > 3) { u.t = 0; u.ox = (Math.random() - 0.5) * 0.5; u.oz = (Math.random() - 0.5) * 0.5; }
     e.position.set(FIRE.x + u.ox + Math.sin(u.t * 3 + u.sw) * 0.15 * u.t, 0.4 + u.t * 1.1, FIRE.z + u.oz + Math.cos(u.t * 2 + u.sw) * 0.12 * u.t); e.scale.setScalar(Math.max(0.1, 1 - u.t / 3)); }
   // 가까이 갈수록 모닥불 소리 크게
@@ -3290,7 +3354,7 @@ function starField(n, size, opacity, band) {
 }
 function buildSky(aur) {
   while (skyG.children.length) { const o = skyG.children.pop(); if (o.material && o.material.map && o.material.map !== starTex) o.material.map.dispose(); }
-  skyG.add(starField(5200, 2.2, 0.75), starField(900, 3.4, 0.9), starField(140, 5, 1)); if (!aur) skyG.add(starField(5000, 1.8, 0.5, true));
+  skyG.add(starField(5200, 2.2, 0.75), starField(900, 3.4, 0.9), starField(140, 5, 1)); if (!aur) skyG.add(starField(5000, 1.8, 0.5, true), starField(1400, 16, 0.045, true));
   skyPick = [];
   if (aur) return;   // 오로라 볼 때는 별만
   const now2 = Date.now(), pos = {};
@@ -3371,6 +3435,33 @@ function skyTexFor(kind) {
     }
   });
   tx.wrapS = tx.wrapT = THREE.RepeatWrapping; return (dayTex[kind] = tx);
+}
+// 🌠 별똥별: 불멍 광장 · 밤하늘 보기에서 가끔 휙! 떨어져요
+const meteorTex = canvasTex(256, 16, (c, w, h) => { const g = c.createLinearGradient(0, 0, w, 0); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.75, 'rgba(220,230,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,1)'); c.fillStyle = g; c.beginPath(); c.moveTo(0, h / 2); c.lineTo(w - 6, 2); c.arc(w - 6, h / 2, 6, -Math.PI / 2, Math.PI / 2); c.lineTo(0, h / 2); c.fill(); });
+const meteor = new THREE.Sprite(new THREE.SpriteMaterial({ map: meteorTex, transparent: true, depthWrite: false, depthTest: false, fog: false, toneMapped: false, blending: THREE.AdditiveBlending }));
+meteor.visible = false; meteor.renderOrder = 5; scene.add(meteor);
+const mt = { next: 7, t: -1, a: new THREE.Vector3(), b: new THREE.Vector3(), lastToast: -99 };
+const METEOR_MSG = ['🌠 별똥별이에요! 얼른 소원을 빌어 보세요', '🌠 방금 별똥별 봤어요? 소원 하나 빌어요 ✨', '🌠 휙! 별똥별이 떨어졌어요'];
+function updateMeteor(t, dt) {
+  const night = (fireMoodOn && !skyView) || (skyView && (skyView.kind === 'stars' || skyView.kind === 'aurora'));
+  if (!night) { meteor.visible = false; mt.t = -1; return; }
+  if (mt.t < 0) {
+    mt.next -= dt; if (mt.next > 0) return;
+    const f = new THREE.Vector3(); camera.getWorldDirection(f);
+    const r = new THREE.Vector3().crossVectors(f, new THREE.Vector3(0, 1, 0)).normalize(), u = new THREE.Vector3().crossVectors(r, f).normalize();
+    const s = Math.random() < 0.5 ? 1 : -1;
+    mt.a.copy(camera.position).addScaledVector(f, 60).addScaledVector(r, -s * (6 + Math.random() * 16)).addScaledVector(u, 6 + Math.random() * 10);
+    if (mt.a.y < camera.position.y + 14) mt.a.y = camera.position.y + 14 + Math.random() * 12;
+    mt.b.copy(mt.a).addScaledVector(r, s * (22 + Math.random() * 14)).addScaledVector(u, -(9 + Math.random() * 6));
+    mt.t = 0; mt.dur = 0.9 + Math.random() * 0.5; meteor.visible = true;
+    if (t - mt.lastToast > 45) { mt.lastToast = t; toast(METEOR_MSG[Math.random() * METEOR_MSG.length | 0]); }
+  }
+  mt.t += dt; const k = mt.t / mt.dur;
+  if (k >= 1) { mt.t = -1; meteor.visible = false; mt.next = 12 + Math.random() * 18; return; }
+  meteor.position.lerpVectors(mt.a, mt.b, k);
+  const h = meteor.position.clone().project(camera), tl = meteor.position.clone().sub(mt.b.clone().sub(mt.a).normalize()).project(camera);
+  meteor.material.rotation = Math.atan2((h.y - tl.y) * innerHeight, (h.x - tl.x) * innerWidth);
+  meteor.material.opacity = Math.sin(Math.PI * k); meteor.scale.set(9, 0.5, 1);
 }
 function enterSky(kind) {
   if (kind === true) kind = 'aurora'; if (!kind) kind = 'stars';
@@ -3920,7 +4011,7 @@ addEventListener('keydown', e => {
   keys[e.code] = true;
   if (e.code === 'Space') { e.preventDefault(); if (mallow.on) { if (!mallow.burning) { mallow.hold = true; $('mallowHold').classList.add('on'); } } else jump(); }
   if (e.code === 'KeyC') toggleSit();
-  if (e.code === 'KeyM' && mode === 'walk' && Math.hypot(player.position.x - FIRE.x, player.position.z - FIRE.z) < 4.2) mallow.on ? mallowStop() : mallowStart();
+  
   if (e.code === 'KeyV') setView(!firstPerson);
   if (e.code === 'Digit2') tea();
 });
@@ -3970,7 +4061,41 @@ function setView(fp) {
   controls.update();
   const b = $('viewBtn'); if (b) b.textContent = fp ? '🎥 3인칭' : '👁️ 1인칭';
 }
+// 🧭 사용법 안내 (처음 들어오면 한 장씩 넘겨 보기) + 💡 가끔 띄우는 팁
+const GUIDE = [
+  ['🚶 걷기', coarse ? '왼쪽 아래 <b>동그라미</b>를 밀면 걸어요.<br>가고 싶은 바닥을 톡 눌러도 걸어가요.' : '<b>방향키</b>나 <b>W A S D</b>로 걸어요.<br>가고 싶은 바닥을 클릭해도 걸어가요.'],
+  ['👀 둘러보기', coarse ? '화면을 <b>끌면</b> 고개를 돌려요.<br><b>두 손가락</b>으로 벌리면 크게 보여요.' : '화면을 <b>끌면</b> 둘러봐요. <b>휠</b>로 확대해요.<br><b>V</b>를 누르면 1인칭으로 바뀌어요.'],
+  ['🪑 앉기 · 📷 인증샷', '의자 가까이에서 <b>앉기</b>를 누르면 앉아요.<br><b>📷 인증샷</b>으로 기념사진을 남겨 보세요.'],
+  ['📍 장소 이동 · 🎯 스탬프', '<b>장소 이동</b>을 누르면 원하는 곳으로 바로 가요.<br><b>스탬프 투어</b>로 재단 곳곳 도장을 모아요.'],
+  ['🤫 숨은 공간 찾기', '재단 어딘가 <b>금빛으로 반짝이는 책</b>이 있어요.<br>눌러 보면… 비밀의 공간이 열려요!'],
+];
+let guideI = 0;
+function showGuide(i) {
+  guideI = i; const [h, b] = GUIDE[i]; $('guideT').textContent = h; $('guideB').innerHTML = b;
+  $('guideDots').innerHTML = GUIDE.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('');
+  $('guideNext').textContent = i === GUIDE.length - 1 ? '시작하기 🎉' : '다음 ›'; $('guide').classList.add('show');
+}
+function closeGuide() { $('guide').classList.remove('show'); try { localStorage.setItem('ktrfGuide', '1'); } catch (e) {} tipT = 18; }
+$('guideNext').addEventListener('click', () => guideI < GUIDE.length - 1 ? showGuide(guideI + 1) : closeGuide());
+$('guideX').addEventListener('click', closeGuide);
+$('helpBtn').addEventListener('click', () => showGuide(0));
+const TIPS = {
+  main: ['열람 테이블 옆 <b>OX 퀴즈</b>를 다 맞히면 박사 모자를 받아요 🎓', '<b>📍 장소 이동</b>을 누르면 원하는 곳으로 바로 가요', '<b>🎯 스탬프 투어</b>로 재단 곳곳 도장을 모아 보세요', '<b>📷 인증샷</b>을 찍어 #재단랜선나들이 로 자랑해 주세요', '서고 어딘가 <b>금빛으로 반짝이는 책</b>이 있대요 🤫', '총무부와 사무국장실 사이 책장도 한번 눌러 보세요 🔥', coarse ? '<b>1인칭</b> 버튼을 누르면 내 눈으로 보듯 걸어요' : '<b>V</b>를 누르면 1인칭으로 걸어요'],
+  lib: ['책상 가까이에서 <b>앉기</b>를 누르면 공부 타이머가 켜져요 ⏱️', '<b>🌌 하늘</b>을 누르면 별 · 구름 · 노을을 볼 수 있어요', '<b>🌦️ 풍경</b>으로 창밖 날씨를 바꿔 보세요', '<b>🪔 밝기</b>로 스탠드 밝기를 조절해요', '화면을 아래로 끌면 3층 높이 서가를 올려다볼 수 있어요', '책상에 앉으면 <b>할 일</b>을 적어 둘 수 있어요 📝'],
+  plaza: ['옆 <b>장작더미</b>에서 장작을 주워 모닥불에 넣어 보세요 🪵', '의자나 <b>양탄자</b>에 앉으면 불을 가까이서 볼 수 있어요', coarse ? '앉아서 <b>두 손가락</b>으로 벌리면 불이 크게 보여요' : '앉아서 <b>휠</b>을 굴리면 불이 크게 보여요', '<b>🌌 하늘 보기</b>로 지금 서울 하늘의 별자리를 찾아보세요', '<b>🟢 오로라</b>도 꼭 한 번 보세요', '<b>🔈 소리 켜기</b>를 누르면 장작 ASMR이 들려요', '밤하늘을 보다 보면 <b>별똥별</b>이 떨어져요 🌠'],
+};
+let tipT = 25, tipZone = '', tipIdx = {}, tipHide = 0;
+function updateTips(dt) {
+  if (mode !== 'walk' || skyView || $('guide').classList.contains('show')) return;
+  const z = inSecretRoom() ? 'lib' : inPlaza() ? 'plaza' : 'main';
+  if (z !== tipZone) { tipZone = z; tipT = z === 'main' ? Math.max(tipT, 20) : 6; }
+  if (tipHide > 0 && (tipHide -= dt) <= 0) $('tipCard').classList.remove('show');
+  if ((tipT -= dt) > 0) return;
+  const L = TIPS[z], i = (tipIdx[z] = ((tipIdx[z] ?? -1) + 1) % L.length);
+  $('tipText').innerHTML = L[i]; $('tipCard').classList.add('show'); tipHide = 8; tipT = 70;
+}
 function enterWalk() {
+  try { if (!localStorage.getItem('ktrfGuide')) setTimeout(() => showGuide(0), 1800); } catch (e) {}
   mode = 'walk'; player.visible = true;
   player.position.set(-4, 0, 19.5); player.rotation.y = Math.PI;
   controls.autoRotate = false; controls.minDistance = 2; controls.maxDistance = 14; controls.maxPolarAngle = 1.15;
@@ -4002,7 +4127,7 @@ let keyIdx = 0;
 const myId = Math.random().toString(36).slice(2, 10);
 const onlineEl = $('online'), joinEl = $('join'), chatEl = $('chat');
 const SHIRTS = [0x7fb3d5, 0xf2a7b5, 0x9ad08a, 0xc7a6e6, 0xf5a65b, 0x5fc4c0, 0xe57373, 0x8d9fd6];
-let sb = null, chan = null, connected = false, myName = '', roomName = '';
+let sb = null, chan = null, connected = false, myName = '', roomName = '', myBaseName = '', myJoinAt = 0;
 const remotes = new Map();
 const hashOf = s => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
 const lsGet = k => { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } };
@@ -4070,14 +4195,34 @@ function updateOnline() {
   if (!connected) return;
   onlineEl.textContent = `🟢 접속 ${remotes.size + 1}명 · ${roomName} 방`;
 }
+// 같은 방에 같은 닉네임이 있으면 뒤에 들어온 사람에게 숫자를 붙여요 (쑤 → 쑤2)
+function uniqueName(retrack) {
+  if (!chan) return;
+  const st = chan.presenceState(), taken = new Set(); let clash = false;
+  for (const id of Object.keys(st)) {
+    if (id === myId) continue; const info = (st[id] && st[id][0]) || {}; if (!info.name) continue;
+    taken.add(info.name);
+    if (info.name === myName && (!info.at || info.at < myJoinAt || (info.at === myJoinAt && id < myId))) clash = true;
+  }
+  if (!clash) return;
+  let n = 2; while (taken.has(myBaseName + n)) n++;
+  myName = (myBaseName.slice(0, 8)) + n; setNameTag(myName);
+  toast(`"${myBaseName}" 닉네임은 이미 있어서 "${myName}"(으)로 들어왔어요`);
+  if (retrack) chan.track({ name: myName, look: myLook, at: myJoinAt });
+}
 function syncPresence() {
   const st = chan.presenceState();
+  if (connected && myJoinAt) uniqueName(true);
   const ids = new Set(Object.keys(st));
   for (const id of ids) {
     if (id === myId) continue;
     const info = (st[id] && st[id][0]) || {};
     if (!remotes.has(id)) { addRemote(id, info.name, info.look); showChat(remotes.get(id).ch, '👋 안녕하세요'); setTimeout(() => sendPet(true), 600); }
-    else if (info.look && info.look.s) { const r = remotes.get(id), js = JSON.stringify(info.look); if (r.look !== js) { r.look = js; restyle(r.ch, info.look); } }
+    else {
+      const r = remotes.get(id);
+      if (info.name && info.name !== r.name) { r.name = info.name; r.ch.remove(r.tag); r.tag = textSprite(info.name, 46); r.tag.position.y = 2.0; r.tag.scale.multiplyScalar(0.8); r.ch.add(r.tag); }
+      if (info.look && info.look.s) { const js = JSON.stringify(info.look); if (r.look !== js) { r.look = js; restyle(r.ch, info.look); } }
+    }
   }
   for (const id of [...remotes.keys()]) if (!ids.has(id)) removeRemote(id);
   updateOnline();
@@ -4187,7 +4332,10 @@ async function connectRoom() {
         if (chan !== myChan) return;
         if (status === 'SUBSCRIBED') {
           connected = true;
-          await chan.track({ name: myName, look: myLook });
+          myBaseName = myName; myJoinAt = Date.now();
+          await new Promise(r => setTimeout(r, 700));   // 먼저 들어온 사람들 목록을 받아요
+          uniqueName(false);
+          await chan.track({ name: myName, look: myLook, at: myJoinAt });
           updateOnline(); sendMove(true); sendPet(true);
           toast(`"${roomName}" 방에 들어왔어요 👋`);
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
@@ -4659,7 +4807,7 @@ function restyle(ch, look) {
 }
 function applyMyLook(save = true) {
   restyle(player, myLook);
-  if (save) { try { localStorage.setItem('ktrfLook', JSON.stringify(myLook)); } catch (e) {} if (connected) chan.track({ name: myName, look: myLook }); }
+  if (save) { try { localStorage.setItem('ktrfLook', JSON.stringify(myLook)); } catch (e) {} if (connected) chan.track({ name: myName, look: myLook, at: myJoinAt }); }
   buildLookUI();
 }
 function buildLookUI() {
@@ -4736,6 +4884,15 @@ $('fireVolR').addEventListener('input', e => { fireVol = +e.target.value; try { 
 $('skyBtn').addEventListener('click', () => skyView ? exitSky() : enterSky(false));
 $('auroraBtn').addEventListener('click', () => skyView ? exitSky() : enterSky(true));
 $('skyExit').addEventListener('click', exitSky);
+// 🔍 불멍 화면·책상 화면에서 휠/두 손가락으로 크게 보기 (시야각을 좁혀 확대)
+{ const zoomOk = () => deskView && !skyView;
+  const setFov = f => { camera.fov = Math.max(22, Math.min(75, f)); camera.updateProjectionMatrix(); };
+  renderer.domElement.addEventListener('wheel', e => { if (!zoomOk()) return; e.preventDefault(); setFov(camera.fov + e.deltaY * 0.04); }, { passive: false });
+  let pd = 0, pf = 0;
+  renderer.domElement.addEventListener('touchstart', e => { if (zoomOk() && e.touches.length === 2) { pd = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); pf = camera.fov; } }, { passive: true });
+  renderer.domElement.addEventListener('touchmove', e => { if (zoomOk() && e.touches.length === 2 && pd) { e.preventDefault(); const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); setFov(pf * pd / d); } }, { passive: false });
+  renderer.domElement.addEventListener('touchend', () => { pd = 0; });
+}
 { let down = null; const _sv = new THREE.Vector3();
   renderer.domElement.addEventListener('pointerdown', e => { if (skyView) down = [e.clientX, e.clientY]; });
   renderer.domElement.addEventListener('pointerup', e => {
@@ -4829,6 +4986,7 @@ $('studyCfgView').addEventListener('click', e => {
   if (b.id === 'cfgOk') { $('studyCfgView').classList.remove('show'); if (study && !study.paused && study.phase === 'focus') { study.left = Math.min(study.left, studyCfg.focus * 60); drawStudy(); } }
 });
 $('keysBtn').addEventListener('click', () => $('keysPanel').classList.toggle('show'));
+addEventListener('keydown', e => { if (e.key === 'Escape') $('keysPanel').classList.remove('show'); });
 $('qrX').addEventListener('click', () => document.body.classList.add('qrOff'));
 $('tourNext').addEventListener('click', () => tourShow(tourI + 1));
 $('tourStop').addEventListener('click', () => tourEnd(false));

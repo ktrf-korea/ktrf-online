@@ -2696,6 +2696,8 @@ function fireLoading() {
   el.classList.add('show'); let k = 0;
   const it = setInterval(() => { k = Math.min(100, k + 8 + Math.random() * 10); $('libLoadBar').style.width = k + '%'; $('libLoadPct').textContent = Math.round(k) + '%';
     if (k >= 100) { clearInterval(it); setTimeout(() => el.classList.remove('show'), 300); } }, 90);
+  // 들어오자마자 장작 넣기 안내 (반투명 카드)
+  setTimeout(() => { try { tipZone = 'plaza'; tipIdx.plaza = 0; $('tipText').innerHTML = '오른쪽 <b>🪵 장작더미</b>에서 장작을 주워 모닥불에 넣어 보세요 🔥'; $('tipCard').classList.add('show'); tipHide = 10; tipT = 60; } catch (e) {} }, 2600);
   // 불 바로 옆(서쪽)으로 데려다 놓고 불을 바라보게
   const px = FIRE.x - 3.4, pz = FIRE.z, dx = px - player.position.x, dz = pz - player.position.z;
   player.position.set(px, 0, pz); player.rotation.y = Math.PI / 2;

@@ -2655,6 +2655,12 @@ const winLamps = [];
   for (const m of [gb, hit]) { m.userData.dept = 'secret'; signMeshes.push(m); }
   secretDoorCol = [-13.2, -12.0, 12.33, 12.87]; colliders.push(secretDoorCol);
   box(1.3, 0.92, 0.22, M(0xd9cbb4), -12.6, 2.56, 13.0);   // 문 위 벽 (빈틈 막기)
+  // 도서관 안쪽에서 보이는 문: 책장 그림 + 손잡이 + 「나가기」 표시 (눌러서 열기)
+  const lfIn = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 2.0), new THREE.MeshStandardMaterial({ map: BT[1] || BT[0], roughness: 0.85 })); lfIn.position.set(0, 1.05, 0.215); leaf.add(lfIn);
+  const knob = new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 8), M(0xd9b24a, { metalness: 0.7, roughness: 0.3 })); knob.position.set(0.45, 1.05, 0.25); leaf.add(knob);
+  const exitTx = canvasTex(512, 140, (c, w, h) => { c.fillStyle = '#2b3a52'; c.fillRect(0, 0, w, h); c.strokeStyle = '#d9c08a'; c.lineWidth = 6; c.strokeRect(6, 6, w - 12, h - 12); c.fillStyle = '#fff'; c.font = `bold 56px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🚪 나가기', w / 2, h / 2 + 2); });
+  const exitSign = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 0.26), new THREE.MeshBasicMaterial({ map: exitTx })); exitSign.position.set(-12.6, 2.4, 13.12); scene.add(exitSign);
+  exitSign.userData.dept = 'secret'; signMeshes.push(exitSign);
   libTall.visible = false;
 }
 const NICK_A = ['차분한', '성실한', '말랑한', '반짝이는', '단단한', '포근한', '느긋한', '씩씩한', '다정한', '조용한'], NICK_B = ['수정테이프', '메모지', '클립', '형광펜', '책갈피', '지우개', '연필', '포스트잇', '자', '만년필'];
@@ -2705,9 +2711,8 @@ function autoClose(key, open, x, z, toggle, dt) {
 function toggleSecretDoor(auto) {
   secretDoorOpen = !secretDoorOpen;
   const i = colliders.indexOf(secretDoorCol);
-  if (secretDoorOpen) { if (i >= 0) colliders.splice(i, 1); toast('📚 책장이 스르륵 열렸어요! 비밀의 도서관으로 들어가 보세요 🤫'); }
-  else if (auto === true && inSecretRoom()) toast('🚪 책장 문이 닫혔어요. 나갈 때는 문 책장을 누르세요');
-  else { if (i < 0) colliders.push(secretDoorCol); }
+  if (secretDoorOpen) { if (i >= 0) colliders.splice(i, 1); toast(inSecretRoom() ? '🚪 책장 문이 열렸어요. 문으로 나가면 재단 복도예요 👋' : '📚 책장이 스르륵 열렸어요! 비밀의 도서관으로 들어가 보세요 🤫'); }
+  else { if (i < 0) colliders.push(secretDoorCol); if (auto === true && inSecretRoom()) toast('🚪 문이 스르륵 닫혔어요. 나갈 때는 「나가기」 책장 문을 누르세요'); }
 }
 function updateSecret(t, dt) {
   const target = secretDoorOpen ? 1.75 : 0; secretDoorA += (target - secretDoorA) * Math.min(1, dt * 3); secretDoor.rotation.y = secretDoorA;

@@ -46,6 +46,8 @@
   #tipCard { position: fixed; left: 50%; bottom: 96px; transform: translate(-50%, 12px); z-index: 11; width: max-content; max-width: 90vw; padding: 12px 18px; border-radius: 18px; background: rgba(20,28,44,.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: #fff; font-family: sans-serif; opacity: 0; pointer-events: none; transition: opacity .5s, transform .5s; text-align: center; }
   #tipCard.show { opacity: 1; transform: translate(-50%, 0); } #tipCard .tl { font-size: 12.5px; color: #ffd9a0; font-weight: bold; } #tipCard p { margin: 4px 0 0; font-size: 15px; line-height: 1.5; }
   body.skyView #tipCard, body.skyView #guide { display: none !important; }
+  #placePins .spark { position: absolute; transform: translate(-50%, -50%); font-size: 22px; pointer-events: none; animation: twinkle 1.4s ease-in-out infinite; filter: drop-shadow(0 0 6px rgba(255,210,90,.9)); }
+  @keyframes twinkle { 0%, 100% { opacity: .35; transform: translate(-50%, -50%) scale(.8); } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); } }
   #keysPanel { position: fixed; right: 14px; top: 64px; z-index: 13; display: none; padding: 18px 22px; border-radius: 18px; background: #fff; color: #1f3a5f; font: 16px sans-serif; box-shadow: 0 10px 34px rgba(0,0,0,.28); border: 2px solid #1f3a5f; min-width: 300px; }
   #keysPanel.show { display: block; } #keysPanel b { display: block; margin-bottom: 10px; font-size: 18px; } #keysPanel p { margin: 9px 0; font-weight: 600; }
   #keysPanel kbd { display: inline-block; min-width: 28px; padding: 4px 9px; border-radius: 8px; background: #1f3a5f; color: #fff; border: none; border-bottom: 3px solid #0f2238; font: bold 15px sans-serif; text-align: center; margin-right: 5px; }
@@ -4610,6 +4612,14 @@ const mx = x => (x - MAP.x0) / (MAP.x1 - MAP.x0) * MW, mz = z => (z - MAP.z0) / 
 const ROOMS = [['정보관', -1.0, -6.5], ['민원센터', 10.8, -6], ['서고', -13.3, 6], ['서고', 6.5, 6], ['연구소', -24.6, 6],
   ['회의실2', -20.2, 5], ['회의실1', 18.4, -6], ['휴게실', 18.4, 4], ['총무부', 26.2, 0.5], ['이사장실', 26.2, -8], ['국장실', 26.2, 8.7],
   ['탕비실', 5.5, 14.8], ['로비', -4, 17.5], ['화장실', 16.5, 16.5]];
+const SECRET_SPARK = [[-12.6, 12.3, 0], [29.4, 5.55, 2.1]];   // 비밀의 도서관 책장 문 · 불멍 광장 책장 문
+function sparkle(g, x, y, r, a) {
+  g.save(); g.globalAlpha = Math.max(0.15, a); g.translate(x, y);
+  const gl = g.createRadialGradient(0, 0, 0, 0, 0, r * 1.6); gl.addColorStop(0, 'rgba(255,214,90,.9)'); gl.addColorStop(1, 'rgba(255,214,90,0)'); g.fillStyle = gl; g.beginPath(); g.arc(0, 0, r * 1.6, 0, 7); g.fill();
+  g.fillStyle = '#ffd24a'; g.strokeStyle = '#fff'; g.lineWidth = 1.5; g.beginPath();
+  for (let i = 0; i < 8; i++) { const rr = i % 2 ? r * 0.32 : r * (0.8 + 0.2 * a), an = i * Math.PI / 4 - Math.PI / 2; g.lineTo(Math.cos(an) * rr, Math.sin(an) * rr); }
+  g.closePath(); g.fill(); g.stroke(); g.restore();
+}
 const mapBase = document.createElement('canvas'); mapBase.width = MW; mapBase.height = MH;
 function drawMapBase(cv = mapBase, labels = true) {
   const g = cv.getContext('2d');
@@ -4637,6 +4647,7 @@ const PLACES = [['entrance', '출입문', -4, 17.5, '엘리베이터 로비'], [
   const plain = document.createElement('canvas'); plain.width = MW; plain.height = MH; drawMapBase(plain, false);
   g.drawImage(plain, 20, 20, W2 - 40, H2 - 40); g.restore();
   const pins = $('placePins'), list = $('placeList');
+  for (const [sx, sz] of SECRET_SPARK) { const sp = document.createElement('span'); sp.className = 'spark'; sp.textContent = '✨'; sp.style.left = ((20 + mx(sx) / MW * (W2 - 40)) / W2 * 100) + '%'; sp.style.top = ((20 + mz(sz) / MH * (H2 - 40)) / H2 * 100) + '%'; pins.appendChild(sp); }
   PLACES.forEach(([z, name, x, zz, sub], i) => {
     const go = () => { $('placeView').classList.remove('show'); const b = document.querySelector(`#zones button[data-z="${z}"]`); if (b) b.click(); };
     const pb = document.createElement('button'); pb.innerHTML = `<b>${i + 1}</b>${name}`;
@@ -4656,6 +4667,8 @@ function updateMap(t) {
   if (!show || box.classList.contains('closed') || t - mapT < 0.15) return; mapT = t;
   mapG.drawImage(mapBase, 0, 0);
   for (const r of remotes.values()) { mapG.fillStyle = '#3a8fd9'; mapG.beginPath(); mapG.arc(mx(r.ch.position.x), mz(r.ch.position.z), 6, 0, 7); mapG.fill(); }
+  // ✨ 숨은 공간 입구: 이름 없이 반짝반짝만
+  for (const [sx, sz, ph] of SECRET_SPARK) sparkle(mapG, mx(sx), mz(sz), 9, 0.55 + 0.45 * Math.sin(t * 4 + ph));
   const px = mx(player.position.x), pz = mz(player.position.z);
   mapG.fillStyle = 'rgba(232,112,42,0.25)'; mapG.beginPath(); mapG.arc(px, pz, 14 + Math.sin(t * 5) * 3, 0, 7); mapG.fill();
   mapG.fillStyle = '#e8702a'; mapG.strokeStyle = '#fff'; mapG.lineWidth = 3; mapG.beginPath(); mapG.arc(px, pz, 8, 0, 7); mapG.fill(); mapG.stroke();

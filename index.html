@@ -1400,7 +1400,7 @@ for (let i = 0; i < 9; i++) {
 // 공기청정기 · 복사기 · 상자
 collide(box(0.38, 0.85, 0.38, M(0xb3b7bb, { metalness: 0.3 }), 8.2, 0.425, -11.6));
 // 롤 블라인드 (창 위쪽 절반)
-for (const x of [7.4, 10.2, 13.0]) box(2.6, 0.75, 0.04, M(0xece5d8), x, 2.1, -11.9);
+// (롤 블라인드는 뺐어요 — 깨끗한 통창)
 // 천장에 매달린 이름판
 {
   const signTex = canvasTex(512, 96, (g, w, h) => {
@@ -1463,7 +1463,7 @@ copier(4.6, -0.5, Math.PI);
 }
 copier(6.95, -2.25, Math.PI);
 
-for (const x of [-4.4, -1.6, 1.2]) box(2.6, 0.75, 0.04, M(0xece5d8), x, 2.1, -11.9);
+// (롤 블라인드는 뺐어요 — 깨끗한 통창)
 for (const x of [7.1]) {
   box(0.35, 0.4, 0.35, M(0xf4f4f4), x, 1.1, -11.7);
   const p = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 8), leafM);
@@ -3288,6 +3288,28 @@ function toggleGalDoor(auto) {
   else { if (i < 0) colliders.push(galDoorCol); if (auto === true && inGallery()) toast('🚪 책장 문이 닫혔어요. 돌아갈 때는 문 책장을 누르세요'); }
 }
 let galWas = false, galCam = false;
+// 🪟 갤러리 책장 문 근처: 위쪽(1.7m 넘는) 칸막이·판들을 반투명하게 → 시야가 트여요
+let doorFadeList = null, doorFadeOn = false;
+function doorFade(on) {
+  if (on === doorFadeOn) return; doorFadeOn = on;
+  if (!doorFadeList) {
+    doorFadeList = []; const wp = new THREE.Vector3();
+    const walk = o => { for (const c of o.children) {
+      if (c === galG || c === player || c === galDoor || (c.userData && c.userData.dept)) continue;
+      if (c.isMesh && c.material && !Array.isArray(c.material) && c.geometry) {
+        const gp = c.geometry.parameters || {}, hgt = gp.height != null ? gp.height : (c.geometry.args || [])[1];
+        if (hgt != null) { c.getWorldPosition(wp);
+          if (wp.x > 5.2 && wp.x < 13.2 && wp.z > -12.6 && wp.z < -5.5 && wp.y + hgt / 2 > 1.7 && hgt < 4) doorFadeList.push(c); }
+      }
+      if (c.children && c.children.length) walk(c);
+    } };
+    walk(scene);
+  }
+  for (const m of doorFadeList) {
+    if (on) { if (!m.userData.solidMat) { m.userData.solidMat = m.material; const f = m.material.clone(); f.transparent = true; f.opacity = 0.18; f.depthWrite = false; m.userData.fadeMat = f; } m.material = m.userData.fadeMat; m.castShadow = false; }
+    else if (m.userData.solidMat) { m.material = m.userData.solidMat; m.castShadow = true; }
+  }
+}
 function updateGallery(t, dt) {
   galDoorA += ((galDoorOpen ? 1.6 : 0) - galDoorA) * Math.min(1, dt * 3); galDoor.rotation.y = galDoorA;
   autoClose('gal', galDoorOpen, (GDOOR.x0 + GDOOR.x1) / 2, GDOOR.z, toggleGalDoor, dt);
@@ -3308,6 +3330,7 @@ function updateGallery(t, dt) {
   // 갤러리 문·복도 근처: 카메라를 캐릭터 가까이 붙여서 칸막이·벽에 가려 답답하지 않게
   { const px = player.position.x, pz = player.position.z;
     const nearDoor = mode === 'walk' && !firstPerson && !deskView && !skyView && px > GCOR.x0 - 0.6 && px < GCOR.x1 + 0.6 && pz > GAL.z1 - 0.5 && pz < GDOOR.z + 2.6;
+    doorFade(nearDoor || (mode === 'walk' && px > 5.5 && px < 13 && pz > -12.4 && pz < -6));   // 책장 근처에 가면 위쪽 판들이 반투명
     if (nearDoor) { if (!updateGallery.tight) { updateGallery.tight = controls.maxDistance; } controls.maxDistance = 2.2; }
     else if (updateGallery.tight) { controls.maxDistance = inG ? 8 : updateGallery.tight; updateGallery.tight = 0; } }
   if (inG && !galWas && player.position.z < GAL.z1 + 0.5) { galWas = true; toast('🖼️ 우리들의 갤러리 F에 오신 걸 환영해요 · 작품을 누르면 크게 볼 수 있어요'); }

@@ -785,7 +785,7 @@ function eventStandee(x, z, rotY) {
   return g;
 }
 if (showEvent) {
-  eventScreens(-6.5, 13.8, 0.3);      // 엘리베이터 홀: 판넬 대신 전광판 2개 나란히
+  // 자동문 옆 세워 둔 전광판 2개는 뺐어요 (D-day 전광판을 자동문 왼쪽 유리창에 2단으로)
 }
 // ===== 자동문 위 전광판: 2026 주요 행사 (흘러가는 글자) =====
 const EVENTS_2026 = [
@@ -3849,7 +3849,7 @@ if (showEvent) {
     c.fillText(dd > 0 ? '2026. 12. 17.(목) 12:30 · 노보텔 앰배서더 강남' : '오늘입니다! 노보텔 앰배서더 강남에서 만나요', w / 2, 452);
     c.fillStyle = '#e8702a'; c.font = `bold 32px ${FONT}`; c.fillText(Date.now() < RSVP_END.getTime() ? '👆 눌러서 자세히 보기 · 사전 참석 등록 중' : '👆 눌러서 자세히 보기', w / 2, 524);
   });
-  const g = new THREE.Group(); g.position.set(-7.46, 0.26, 21.07); g.rotation.y = Math.PI / 2; g.scale.setScalar(0.86); scene.add(g);   // 오른쪽 칸 (왼쪽 칸은 모니터링단 결과보고회)
+  const g = new THREE.Group(); g.position.set(-6.52, 0.62, 13.2); g.scale.setScalar(0.86); scene.add(g);   // 자동문 왼쪽 유리창 · 위칸
   box(1.86, 1.08, 0.06, M(0x15171b, { roughness: 0.3, metalness: 0.4 }), 0, 1.85, 0.03, g);
   const sc = new THREE.Mesh(new THREE.PlaneGeometry(1.76, 0.99), new THREE.MeshBasicMaterial({ map: tx, toneMapped: false }));
   sc.position.set(0, 1.85, 0.065); sc.userData.dept = 'event'; g.add(sc); signMeshes.push(sc);
@@ -3877,7 +3877,7 @@ if (Date.now() < MON_DAY.getTime() + 86400e3) {
     '📍 JW메리어트 호텔 서울 (3층)',
     '✨ 모니터링단 위원님들, 올 한 해 고생 많으셨습니다!',
     '한 해 동안 교과서를 꼼꼼히 살펴 주신 교과서 모니터링단 여러분의 활동 결과를 함께 나누는 자리예요.'] };
-  const g = new THREE.Group(); g.position.set(-7.46, 0.26, 19.25); g.rotation.y = Math.PI / 2; g.scale.setScalar(0.86); scene.add(g);
+  const g = new THREE.Group(); g.position.set(-6.52, -0.36, 13.2); g.scale.setScalar(0.86); scene.add(g);   // 자동문 왼쪽 유리창 · 아래칸
   box(1.86, 1.08, 0.06, M(0x15171b, { roughness: 0.3, metalness: 0.4 }), 0, 1.85, 0.03, g);
   const sc = new THREE.Mesh(new THREE.PlaneGeometry(1.76, 0.99), new THREE.MeshBasicMaterial({ map: tx, toneMapped: false }));
   sc.position.set(0, 1.85, 0.065); sc.userData.dept = 'monitorReport'; g.add(sc); signMeshes.push(sc);

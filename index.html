@@ -3164,8 +3164,9 @@ const galWalls = { s: [], n: [], w: [], e: [] };
         const pp = new THREE.Mesh(new THREE.PlaneGeometry(0.96, 1.36), new THREE.MeshBasicMaterial({ map: pt })); pp.position.set(wx - s * 0.165, 1.65, z); pp.rotation.y = -s * Math.PI / 2; galG.add(pp);
       }
     }
-    // 위쪽은 열린 하얀 들보 (하늘이 보이는 회랑)
-    for (let z = GDOOR.z - 0.9; z > GAL.z1 + 0.5; z -= 2.2) box(CW + 0.25, 0.14, 0.22, white, cx, CH - 0.07, z, galG);
+    // 위쪽은 통유리 지붕 (들보 없이 하늘이 그대로 보여요)
+    { const roof = new THREE.Mesh(new THREE.PlaneGeometry(CW + 0.25, L), new THREE.MeshStandardMaterial({ color: 0xdff0f8, transparent: true, opacity: 0.1, roughness: 0.05, metalness: 0.1, depthWrite: false, side: THREE.DoubleSide }));
+      roof.rotation.x = -Math.PI / 2; roof.position.set(cx, CH, cz); galG.add(roof); }
     // 화분 두 개 (미술관 입구 앞)
     for (const s of [-1, 1]) { const px = cx + s * 1.25, pz = GAL.z1 + 0.7;
       box(0.45, 0.6, 0.45, M(0x2a2a2c, { roughness: 0.5 }), px, 0.3, pz, galG); colliders.push([px - 0.25, px + 0.25, pz - 0.25, pz + 0.25]);
@@ -3202,13 +3203,15 @@ const galWalls = { s: [], n: [], w: [], e: [] };
     box(0.5, 0.06, 0.06, black, 0, cy + hh / 2 + 0.6, 0.25, g); const lf = box(0.12, 0.18, 0.12, black, 0, cy + hh / 2 + 0.5, 0.32, g); lf.rotation.x = 0.6;
     const pool = new THREE.Mesh(new THREE.PlaneGeometry(ww * 1.8, hh * 1.2), new THREE.MeshBasicMaterial({ map: poolT, transparent: true, opacity: 0.35, depthWrite: false, blending: THREE.AdditiveBlending })); pool.position.set(0, cy + 0.3, 0.02); g.add(pool);
     // 작품 이름표 (액자 아래)
-    const lt = canvasTex(520, 170, (c, w, h) => {
-      c.fillStyle = '#e9e4da'; c.fillRect(0, 0, w, h);
-      c.fillStyle = awardCol[a.award] || '#333'; c.font = `bold 26px ${FONT}`; c.fillText(a.award + '  ·  ' + a.grade, 18, 36);
-      c.fillStyle = '#1b1b1d'; let fs = 34; do { c.font = `bold ${fs}px ${FONT}`; fs -= 2; } while (c.measureText(a.title).width > w - 36 && fs > 20); c.fillText(a.title, 18, 92);
-      c.fillStyle = '#3d3d3d'; c.font = `bold 24px ${FONT}`; c.fillText(a.name, 18, 140);
+    const lt = canvasTex(1560, 510, (c, w, h) => {   // 3배 해상도로 또렷하게
+      c.scale(3, 3); w = 520; h = 170;
+      c.fillStyle = '#111113'; c.fillRect(0, 0, w, h);   // 검정 바탕 + 흰 글씨
+      c.fillStyle = ({ '대상': '#ff7a66', '최우수상': '#ffbe5c', '우수상': '#8fd0ff' })[a.award] || '#ddd'; c.font = `bold 32px ${FONT}`; c.fillText(a.award + '  ·  ' + a.grade, 16, 40);
+      c.fillStyle = '#ffffff'; let fs = 46; do { c.font = `900 ${fs}px ${FONT}`; fs -= 2; } while (c.measureText(a.title).width > w - 30 && fs > 24); c.fillText(a.title, 16, 100);
+      c.fillStyle = '#d6d6d6'; c.font = `bold 30px ${FONT}`; c.fillText(a.name, 16, 150);
     });
-    const lb = new THREE.Mesh(new THREE.PlaneGeometry(ww * 0.95, ww * 0.95 * 170 / 520), new THREE.MeshBasicMaterial({ map: lt, color: 0xd8d8d8 })); lb.position.set(0, cy - hh / 2 - 0.3, 0.03); g.add(lb);
+    const LW = Math.max(ww * 1.05, 1.3), LH = LW * 170 / 520;   // 이름표를 크게
+    const lb = new THREE.Mesh(new THREE.PlaneGeometry(LW, LH), new THREE.MeshBasicMaterial({ map: lt, toneMapped: false })); lb.position.set(0, cy - hh / 2 - 0.12 - LH / 2, 0.03); g.add(lb);
     const key = 'art' + i;
     DEPT_INFO[key] = { name: '🖼️ ' + a.title, imgs: [a.src], paras: [`${a.award} · ${a.grade} · ${a.name}`, ...a.desc.split('\n')] };
     for (const m of [cv, lb]) { m.userData.dept = key; signMeshes.push(m); }
@@ -3223,7 +3226,6 @@ const galWalls = { s: [], n: [], w: [], e: [] };
       const a = (i + 0.5) / NC * Math.PI * 2, x = Math.sin(a) * RC, z = Math.cos(a) * RC;
       const col = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, CH2 - 0.5, 20), marble); col.position.set(x, 0.25 + (CH2 - 0.5) / 2, z); col.castShadow = true; domeG.add(col);
       box(0.8, 0.25, 0.8, cream, x, 0.125, z, domeG); box(0.8, 0.25, 0.8, gold2, x, CH2 - 0.12, z, domeG);
-      colliders.push([DC.x + x - 0.4, DC.x + x + 0.4, DC.z + z - 0.4, DC.z + z + 0.4]);
     }
     // 기둥 위 둥근 띠(엔타블러처)
     const ent = new THREE.Mesh(new THREE.CylinderGeometry(RD + 0.15, RD + 0.15, 0.6, 64, 1, true), new THREE.MeshStandardMaterial({ color: 0xf1ead8, roughness: 0.7, side: THREE.DoubleSide })); ent.position.y = CH2 + 0.3; domeG.add(ent);
@@ -3250,6 +3252,7 @@ const galWalls = { s: [], n: [], w: [], e: [] };
     const basin = new THREE.Mesh(new THREE.CylinderGeometry(1.55, 1.65, 0.5, 48), marble); basin.position.set(0, 0.25, -0.3); domeG.add(basin);
     const water = new THREE.Mesh(new THREE.CircleGeometry(1.42, 48), new THREE.MeshStandardMaterial({ color: 0x8fc4d8, roughness: 0.05, metalness: 0.3, transparent: true, opacity: 0.85 })); water.rotation.x = -Math.PI / 2; water.position.set(0, 0.46, -0.3); domeG.add(water);
     colliders.push([DC.x - 1.65, DC.x + 1.65, DC.z - 1.95, DC.z + 1.35]);
+    for (const o of [...domeG.children]) if (o !== basin && o !== water) domeG.remove(o);   // 돔·기둥은 치우고 분수만 남겨요
   }
   // 가운데 조각 (하얀 매듭) + 받침
   box(0.9, 1.0, 0.9, white, 10, 0.5, -31.5, galG);
@@ -3302,6 +3305,11 @@ function updateGallery(t, dt) {
   }
   if (inG && !firstPerson && !deskView && !skyView) { controls.maxPolarAngle = 1.85; if (controls.maxDistance > 8) controls.maxDistance = 8; galCam = true; }   // 돔을 올려다볼 수 있게
   else if (galCam && !inG) { galCam = false; if (!firstPerson) { controls.maxPolarAngle = 1.15; controls.maxDistance = 14; } }
+  // 갤러리 문·복도 근처: 카메라를 캐릭터 가까이 붙여서 칸막이·벽에 가려 답답하지 않게
+  { const px = player.position.x, pz = player.position.z;
+    const nearDoor = mode === 'walk' && !firstPerson && !deskView && !skyView && px > GCOR.x0 - 0.6 && px < GCOR.x1 + 0.6 && pz > GAL.z1 - 0.5 && pz < GDOOR.z + 2.6;
+    if (nearDoor) { if (!updateGallery.tight) { updateGallery.tight = controls.maxDistance; } controls.maxDistance = 2.2; }
+    else if (updateGallery.tight) { controls.maxDistance = inG ? 8 : updateGallery.tight; updateGallery.tight = 0; } }
   if (inG && !galWas && player.position.z < GAL.z1 + 0.5) { galWas = true; toast('🖼️ 우리들의 갤러리 F에 오신 걸 환영해요 · 작품을 누르면 크게 볼 수 있어요'); }
   if (!inG) galWas = false;
 }

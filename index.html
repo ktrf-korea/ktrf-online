@@ -1089,7 +1089,7 @@ wall('z', 12, 13, 19);
 wall('z', 21, 13, 19);
 wall('z', 16.5, 13, 19);
 // 바깥 복도: 화장실 뒤로 지나가서 엘리베이터 홀과 이어짐
-wall('x', 19, -0.45, 12);
+wall('x', 19, -0.45, 12, { gaps: [[5.0, 6.4]] });   // 탕비실 → 놀이터 T 가는 문
 wall('x', 22, -0.35, 21.1, { h: 3, t: 0.2, gaps: [[5.0, 6.4]] });   // 5.0~6.4: 놀이터 T 문
 wall('z', 21, 19, 22);
 {
@@ -1129,7 +1129,7 @@ wcSign(20.3, '#2f6fb5', '남'); wcSign(16.0, '#d4506b', '여');
 {
   const tf = new THREE.Mesh(new THREE.PlaneGeometry(4, 3.5), new THREE.MeshStandardMaterial({ map: rtTex, roughness: 0.3 }));
   tf.rotation.x = -Math.PI / 2; tf.position.set(5.5, 0.004, 14.75); tf.receiveShadow = true; scene.add(tf);
-  wall('z', 3.5, 13, 16.5); wall('z', 7.5, 13, 16.5); wall('x', 16.5, 3.5, 7.5);
+  wall('z', 3.5, 13, 16.5); wall('z', 7.5, 13, 16.5); wall('x', 16.5, 3.5, 7.5, { gaps: [[5.0, 6.2]] });   // 탕비실 안쪽 문 → 놀이터 T
   // 오른쪽 벽을 따라 (그림 순서대로): 개수대 | 정수기 | 커피머신+전자레인지 수납장
   const counterM = M(0xf5f5f3), topM = M(0xc9a27a), steel = M(0xb9bec4, { metalness: 0.7, roughness: 0.2 });
   // 1) 개수대
@@ -2309,6 +2309,10 @@ setInterval(() => {
 }, 500);
 function arcadeIn() {}
 label('놀이터 T', 7, 3.6, 26.6, 3.4);
+{ // 탕비실 안쪽 문 위 안내판: '🕹️ 놀이터 T →'
+  const t = canvasTex(512, 128, (g, w, h) => { g.fillStyle = '#120c24'; g.fillRect(0, 0, w, h); g.shadowColor = '#ff4fd8'; g.shadowBlur = 20; g.fillStyle = '#ffd1f6'; g.textAlign = 'center'; g.font = `900 58px ${FONT}`; g.fillText('🕹️ 놀이터 T ↓', w / 2, 86); });
+  for (const [z, ry] of [[16.4, Math.PI], [18.9, Math.PI]]) { const m = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.35), new THREE.MeshBasicMaterial({ map: t, toneMapped: false })); m.position.set(5.65, 2.35, z); m.rotation.y = ry; scene.add(m); }
+}
 window.openArcade = (id) => openArcade(id);
 
 /* ---------- 게임 화면 (6종) ---------- */

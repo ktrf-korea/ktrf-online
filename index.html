@@ -217,6 +217,7 @@
   #libLoadBar { display: block; height: 100%; width: 0; background: #f3ead8; transition: width .09s; } #libLoadPct { font-size: 13px; opacity: .6; } #libLoadTip { font-size: 13px; opacity: .55; margin-top: 30px; }
   #studyCfgView { position: fixed; inset: 0; z-index: 30; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.45); }
   #studyCfgView.show { display: flex; }
+  #cfgReset { display: block; margin: 12px auto 0; border: none; background: none; color: #a0522d; font-size: 13px; text-decoration: underline; cursor: pointer; }
   #studyCfgView .box { background: #fbf6ec; color: #3a2a1c; border-radius: 20px; padding: 20px; width: min(88vw, 360px); font-family: sans-serif; text-align: center; }
   #studyCfgView .box > b { font-size: 18px; display: block; margin-bottom: 12px; }
   #studyCfgView .row { display: flex; align-items: center; gap: 8px; justify-content: center; margin: 10px 0; } #studyCfgView .row span:first-child { width: 96px; text-align: left; }
@@ -406,7 +407,7 @@
   <div class="row"><span>📖 집중 시간</span><button data-k="focus" data-d="-5">−</button><em><span id="cfgFocus">50</span>분</em><button data-k="focus" data-d="5">＋</button></div>
   <div class="quick"><button data-f="25">25분</button><button data-f="50">50분</button><button data-f="90">90분</button></div>
   <div class="row"><span>☕ 쉬는 시간</span><button data-k="rest" data-d="-5">−</button><em><span id="cfgRest">10</span>분</em><button data-k="rest" data-d="5">＋</button></div>
-  <p>빈자리에 🪑 앉으면 타이머가 시작돼요. 화면을 켜 두면 계속 흘러가요.</p><button id="cfgOk">확인</button></div></div>
+  <p>빈자리에 🪑 앉으면 타이머가 시작돼요. 화면을 켜 두면 계속 흘러가요.</p><button id="cfgOk">확인</button><button id="cfgReset">🔄 오늘 공부 시간 0분으로</button></div></div>
 <div id="quizView"><div class="box"><div id="quizStep"></div><p id="quizQ"></p>
   <div id="quizBtns"><button id="quizO">⭕ 맞아요</button><button id="quizX">❌ 아니에요</button></div>
   <div id="quizRes"></div><button id="quizNext">다음 문제 ▶</button><button id="quizClose">닫기</button></div></div>
@@ -3582,22 +3583,29 @@ const bookPages = {};   // var: 다른 곳에서 먼저 불려도 괜찮게
 const deskProps = new THREE.Group(); deskProps.visible = false; scene.add(deskProps);
 {
   const pg = M(0xfbf7ee, { roughness: 0.9 }), cv = M(0x7a2a2a, { roughness: 0.6 });
-  for (const s of [-1, 1]) { const pgm = box(0.21, 0.012, 0.29, pg, s * 0.108, 0.012, 0, deskProps); pgm.rotation.z = -s * 0.06; }
-  box(0.44, 0.008, 0.3, cv, 0, 0.004, 0, deskProps);
+  // 📚 독서대: 책을 비스듬히 세워서 글씨가 크게 보이게
+  const bookG = new THREE.Group(); bookG.position.set(0, 0.2, 0.02); bookG.rotation.x = -0.95; deskProps.add(bookG);
+  const wood = M(0x6b4423, { roughness: 0.7 });
+  box(0.7, 0.02, 0.5, wood, 0, -0.016, 0, bookG);                 // 받침판
+  box(0.7, 0.05, 0.03, wood, 0, 0.01, -0.245, bookG);              // 아래 턱
+  const leg = box(0.05, 0.3, 0.03, wood, 0, 0.14, 0.13, deskProps); leg.rotation.x = 0.35;   // 뒤 받침대
+  box(0.62, 0.02, 0.2, wood, 0, 0.01, 0.05, deskProps);           // 바닥 받침
+  for (const s of [-1, 1]) { const pgm = box(0.31, 0.012, 0.43, pg, s * 0.158, 0.012, 0, bookG); pgm.rotation.z = -s * 0.04; }
+  box(0.64, 0.008, 0.44, cv, 0, 0.004, 0, bookG);
   // 펼친 책 두 쪽: 왼쪽은 📝 할 일, 오른쪽은 오늘 기록 (내 쪽에서 똑바로 읽히게)
   for (const [k, s] of [['L', 1], ['R', -1]]) {
-    const c = document.createElement('canvas'); c.width = 512; c.height = 720; bookPages[k] = c;
+    const c = document.createElement('canvas'); c.width = 1024; c.height = 1440; bookPages[k] = c;   // 2배 해상도
     const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = 8; bookPages[k + 'tx'] = tx;
-    const pl = new THREE.Mesh(new THREE.PlaneGeometry(0.19, 0.27), new THREE.MeshStandardMaterial({ map: tx, roughness: 0.9 })); pl.rotation.set(-Math.PI / 2, 0, Math.PI); pl.position.set(s * 0.108, 0.02, 0); deskProps.add(pl);
+    const pl = new THREE.Mesh(new THREE.PlaneGeometry(0.29, 0.41), new THREE.MeshBasicMaterial({ map: tx, toneMapped: false })); pl.rotation.set(-Math.PI / 2, 0, Math.PI); pl.position.set(s * 0.158, 0.02, 0); bookG.add(pl);
   }
-  const nb = box(0.17, 0.012, 0.23, M(0x2f5a48), -0.36, 0.006, 0.06, deskProps); nb.rotation.y = 0.25;   // 노트
-  const pen = box(0.012, 0.012, 0.16, M(0xe8b84a), 0.3, 0.012, 0.05, deskProps); pen.rotation.y = -0.6;  // 연필
-  const mug = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.036, 0.09, 14), M(0xffffff)); mug.position.set(0.36, 0.045, -0.08); deskProps.add(mug);
-  const cof = new THREE.Mesh(new THREE.CircleGeometry(0.036, 14), M(0x5a3a22)); cof.rotation.x = -Math.PI / 2; cof.position.set(0.36, 0.088, -0.08); deskProps.add(cof);
+  const nb = box(0.17, 0.012, 0.23, M(0x2f5a48), -0.5, 0.006, 0.06, deskProps); nb.rotation.y = 0.25;   // 노트
+  const pen = box(0.012, 0.012, 0.16, M(0xe8b84a), 0.44, 0.012, 0.12, deskProps); pen.rotation.y = -0.6;  // 연필
+  const mug = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.036, 0.09, 14), M(0xffffff)); mug.position.set(0.5, 0.045, -0.12); deskProps.add(mug);
+  const cof = new THREE.Mesh(new THREE.CircleGeometry(0.036, 14), M(0x5a3a22)); cof.rotation.x = -Math.PI / 2; cof.position.set(0.5, 0.088, -0.12); deskProps.add(cof);
 }
 function drawBookPages() {
   if (!bookPages.L) return;
-  const paper = (c) => { const g = c.getContext('2d'); g.fillStyle = '#fbf6ea'; g.fillRect(0, 0, 512, 720); g.strokeStyle = 'rgba(150,170,200,.35)'; g.lineWidth = 2; for (let y = 120; y < 700; y += 52) { g.beginPath(); g.moveTo(40, y); g.lineTo(480, y); g.stroke(); } return g; };
+  const paper = (c) => { const g = c.getContext('2d'); g.setTransform(2, 0, 0, 2, 0, 0); g.fillStyle = '#fbf6ea'; g.fillRect(0, 0, 512, 720); g.strokeStyle = 'rgba(150,170,200,.35)'; g.lineWidth = 2; for (let y = 120; y < 700; y += 52) { g.beginPath(); g.moveTo(40, y); g.lineTo(480, y); g.stroke(); } return g; };
   let g = paper(bookPages.L); g.fillStyle = '#3a2a1c'; g.font = `bold 44px ${FONT}`; g.fillText('📝 오늘의 할 일', 40, 82);
   g.font = `34px ${FONT}`;
   if (!todos.length) { g.fillStyle = '#9a8a74'; g.fillText('할 일을 적어 보세요', 48, 160); g.font = `26px ${FONT}`; g.fillText('(위쪽 📝 할 일 버튼)', 48, 205); }
@@ -3626,7 +3634,7 @@ function enterDeskView(ch, fire) {
   deskProps.position.set(ch.x + fx * 0.58, 0.79, ch.z + fz * 0.58); deskProps.rotation.y = ch.rot; deskProps.visible = true; drawBookPages();
   player.visible = false; controls.enabled = false;
   camera.fov = 58; camera.updateProjectionMatrix();
-  camera.position.set(ch.x - fx * 0.1, 1.24, ch.z - fz * 0.1); controls.target.set(ch.x + fx * 0.72, 0.8, ch.z + fz * 0.72); camera.lookAt(controls.target);
+  camera.position.set(ch.x - fx * 0.05, 1.22, ch.z - fz * 0.05); controls.target.set(ch.x + fx * 0.62, 0.97, ch.z + fz * 0.62);   // 독서대 위 책을 정면으로 camera.lookAt(controls.target);
   document.body.classList.add('deskView'); applyLamp();
 }
 function exitDeskView() {
@@ -4443,6 +4451,18 @@ $('helpBtn').addEventListener('click', () => showGuide(0));
 $('menuBtn').addEventListener('click', () => { const o = document.body.classList.toggle('menuOpen'); $('menuBtn').textContent = o ? '✕ 닫기' : '☰ 메뉴'; });
 document.querySelectorAll('#actions > button:not(#menuBtn):not(#moreBtn)').forEach(b => b.addEventListener('click', () => { if (document.body.classList.contains('menuOpen')) { document.body.classList.remove('menuOpen'); $('menuBtn').textContent = '☰ 메뉴'; } }));
 // 🏛️ 비밀 공간에서 한 번에 재단 열람실로
+// 휴대폰: '재단으로 돌아가기'를 오른쪽 아래 버튼들(인증샷·앉기·메뉴) 바로 위에 띄우기 → 겹치지 않게
+{ const hb = $('homeBtn'), ac = $('actions');
+  const place = () => { if (!matchMedia('(max-width: 600px), (pointer: coarse)').matches) { hb.style.bottom = ''; return; }
+    const r = ac.getBoundingClientRect(); const top = r.height ? r.top : innerHeight - 70; hb.style.bottom = Math.max(84, Math.round(innerHeight - top + 10)) + 'px'; };
+  if (window.ResizeObserver) new ResizeObserver(place).observe(ac); addEventListener('resize', place); setInterval(place, 700); place(); }
+// 🔄 오늘 공부 시간 리셋 (두 번 눌러 확인)
+$('cfgReset').addEventListener('click', (e) => {
+  const b = e.currentTarget;
+  if (!b.dataset.sure) { b.dataset.sure = '1'; b.textContent = '정말 지울까요? 한 번 더 누르면 0분이 돼요'; setTimeout(() => { delete b.dataset.sure; b.textContent = '🔄 오늘 공부 시간 0분으로'; }, 4000); return; }
+  try { localStorage.removeItem(todayKey()); } catch (err) {} study.saved = 0; delete b.dataset.sure; b.textContent = '🔄 오늘 공부 시간 0분으로';
+  toast('🔄 오늘 공부 시간을 0분으로 바꿨어요');
+});
 $('homeBtn').addEventListener('click', () => {
   try { if (skyView) exitSky(); } catch (e) {}
   try { if (sitting) standUp(); } catch (e) {}

@@ -219,6 +219,22 @@
   #studyCfgView.show { display: flex; }
   #arcade { position: fixed; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; background: rgba(8,6,20,.86); touch-action: none; }
   #arcade.show { display: flex; }
+  #tower { position: fixed; inset: 0; z-index: 58; display: none; align-items: center; justify-content: center; background: rgba(10,14,12,.5); }
+  #tower.show { display: flex; }
+  #tower .twBox { width: min(92vw, 400px); max-height: 80vh; display: flex; flex-direction: column; background: #f6eed8; border-radius: 6px; padding: 16px 14px 12px; box-shadow: 0 12px 40px rgba(0,0,0,.35); font-family: sans-serif; color: #2b2a3a; border-top: 4px solid #b8322c; }
+  #tower .twTop { display: flex; align-items: center; justify-content: space-between; } #tower .twTop b { font-size: 18px; color: #2b2a3a; }
+  #twX { border: 0; background: #eee3cc; border-radius: 50%; width: 34px; height: 34px; font-size: 16px; cursor: pointer; }
+  #twSum { font-size: 13px; color: #7a6a4a; margin: 4px 0 10px; }
+  #twList { overflow: auto; flex: 1; }
+  .twRow { display: flex; align-items: center; gap: 8px; padding: 8px 4px; border-bottom: 1px solid rgba(70,110,170,.4); font-size: 14px; }
+  .twRow .tm { color: #5a3c96; }
+  .twRow > i { width: 9px; height: 26px; border-radius: 2px; flex: none; }
+  .twRow .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; }
+  .twRow .nm small { display: block; font-size: 11px; font-weight: 400; color: #2f8a4a; } .twRow .nm small.rest { color: #a07a2a; }
+  .twRow .tm { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 54px; text-align: right; }
+  .twRow button { border: 0; background: #efe5cf; border-radius: 10px; padding: 5px 6px; font-size: 15px; cursor: pointer; }
+  .twRow.me { background: #fff3d1; border-radius: 10px; } .twRow .got { font-size: 12px; color: #a07a2a; }
+  .twNote { font-size: 11.5px; color: #8a7a5a; margin-top: 8px; line-height: 1.5; }
   #arcade .arBox { width: min(96vw, 420px); max-height: 98vh; display: flex; flex-direction: column; align-items: center; gap: 8px; font-family: sans-serif; color: #fff; }
   #arcade .arTop { width: 100%; display: flex; align-items: center; gap: 10px; } #arcade .arTop b { font-size: 18px; } #arcade .arTop span { flex: 1; text-align: right; font-size: 13px; opacity: .85; } #arcade .arTop em { font-style: normal; font-weight: bold; color: #ffd43b; }
   #arClose { border: none; width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,.15); color: #fff; font-size: 16px; cursor: pointer; }
@@ -2213,15 +2229,17 @@ renderer.domElement.addEventListener('pointerup', e => {
   if (!downXY || Math.hypot(e.clientX - downXY[0], e.clientY - downXY[1]) > 8) return;
   const key = pickSign(e);
   if (key && key.startsWith('arcade:')) { openArcade(key.slice(7)); return; }
+  if (key === 'tower' && inSecretRoom()) { openTower(); return; }
   if (key === 'quiz') { quizOpen(); return; }
   if (key === 'selfie') { selfie(); return; }
   if (key === 'secret') { toggleSecretDoor(); return; }
   if (key === 'fireDoor') { toggleFireDoor(); return; }
+  if (key === 'gameDoor') { toggleGameDoor(); return; }
   if (key === 'galDoor') { toggleGalDoor(); return; }
   if (key === 'woodpile') { pickLog(); return; }
   if (key === 'fairy') foundFairy();
   if (key === 'monitorReport' && lastHitPoint) { goldBurst(lastHitPoint, !lastHitFar); setTimeout(() => showInfo(key), lastHitFar ? 3000 : 1600); return; }
-  if (key) showInfo(key); else { infoEl.classList.remove('show'); tapToWalk(e); }
+  if (key && key !== 'tower') showInfo(key); else { infoEl.classList.remove('show'); tapToWalk(e); }
 });
 renderer.domElement.addEventListener('pointermove', e => {
   if (e.pointerType !== 'mouse' || e.buttons) return;
@@ -2304,14 +2322,59 @@ arcadeCab('mines', 1.05, 27.4, Math.PI / 2); arcadeCab('omok', 1.05, 25.2, Math.
 // 들어오면 안내
 setInterval(() => {
   const p = player.position, inG = mode === 'walk' && p.x > GAME.x0 && p.x < GAME.x1 && p.z > GAME.z0 && p.z < GAME.z1;
-  if (inG && !arcadeIn.was) toast('🕹️ 놀이터 T · 게임기 화면을 누르면 한 판 할 수 있어요!');
+  if (inG && !arcadeIn.was && !sitting) { try { gameLoading(); } catch (e) { console.error(e); } }
   arcadeIn.was = inG;
 }, 500);
 function arcadeIn() {}
 label('놀이터 T', 7, 3.6, 26.6, 3.4);
+/* ---------- 🚪 놀이터 T 책장 문 (분홍빛 책을 누르면 스르륵) ---------- */
+let gameDoor = null, gameDoorOpen = false, gameDoorA = 0;
+const gameDoorCol = [5.0, 6.4, 21.88, 22.12]; colliders.push(gameDoorCol);
+{
+  gameDoor = new THREE.Group(); gameDoor.position.set(5.04, 0, 22); scene.add(gameDoor);   // 경첩 (왼쪽)
+  const leaf = new THREE.Group(); leaf.position.set(0.66, 0, 0); gameDoor.add(leaf);
+  box(1.3, 2.1, 0.22, M(0x4a2e1a, { roughness: 0.55 }), 0, 1.05, 0, leaf);
+  const bt = canvasTex(320, 512, (c, w, h) => { c.fillStyle = '#2a1a10'; c.fillRect(0, 0, w, h); const pal = ['#7a2a2a', '#2f5a48', '#2b3f66', '#8a5a2a', '#c9b79a', '#5a3a5a', '#3a5a6a'];
+    for (let r = 0; r < 5; r++) { let x = 6; while (x < w - 6) { const bw = 12 + ((x * 7 + r) % 10), bh = 70 + ((x * 3 + r * 11) % 22); c.fillStyle = pal[(x + r * 3) % pal.length]; c.fillRect(x, r * 102 + 96 - bh, bw - 2, bh); c.fillStyle = 'rgba(240,210,140,.45)'; c.fillRect(x + 2, r * 102 + 96 - bh * 0.8, bw - 6, 2); x += bw; } c.fillStyle = '#5a3a20'; c.fillRect(0, r * 102 + 96, w, 6); } });
+  for (const sd of [-1, 1]) { const f = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 2.0), new THREE.MeshStandardMaterial({ map: bt, roughness: 0.85 })); f.position.set(0, 1.05, sd * 0.115); if (sd < 0) f.rotation.y = Math.PI; leaf.add(f); }
+  const pb = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.32, 0.2), new THREE.MeshStandardMaterial({ color: 0xc23aa8, emissive: 0xff4fd8, emissiveIntensity: 0.5, roughness: 0.4 }));
+  pb.position.set(0.22, 1.32, -0.13); leaf.add(pb); gameDoor.userData.book = pb;
+  const hit = new THREE.Mesh(new THREE.BoxGeometry(1.3, 2.1, 0.5), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })); hit.position.set(0, 1.05, 0); leaf.add(hit);
+  for (const m of [pb, hit]) { m.userData.dept = 'gameDoor'; signMeshes.push(m); }
+  box(1.42, 0.92, 0.2, M(0xeeeeec), 5.7, 2.56, 22);   // 문 위 벽
+}
+function toggleGameDoor(auto) {
+  gameDoorOpen = !gameDoorOpen;
+  const i = colliders.indexOf(gameDoorCol), inG = player.position.z > 22;
+  if (gameDoorOpen) { if (i >= 0) colliders.splice(i, 1); toast(inG ? '🚪 책장 문이 열렸어요. 나가면 재단 복도예요 👋' : '🕹️ 책장이 스르륵… 안으로 들어가면 놀이터 T 예요'); }
+  else { if (i < 0) colliders.push(gameDoorCol); if (auto === true && inG) toast('🚪 문이 스르륵 닫혔어요. 나갈 때는 문 책장을 누르세요'); }
+}
+function updateGameDoor(t, dt) {
+  if (!gameDoor) return;
+  gameDoorA += ((gameDoorOpen ? -1.7 : 0) - gameDoorA) * Math.min(1, dt * 3); gameDoor.rotation.y = gameDoorA;
+  autoClose('game', gameDoorOpen, 5.7, 22, toggleGameDoor, dt);
+  gameDoor.userData.book.material.emissiveIntensity = 0.3 + (Math.sin(t * 2.6) + 1) * 0.35;
+}
+const GAME_ART = '<rect x="0" y="0" width="240" height="150" fill="#120c24"/>' + [[40, '#ff6b6b'], [95, '#4dabf7'], [150, '#51cf66']].map(([x, c]) => `<rect x="${x}" y="30" width="46" height="100" rx="6" fill="${c}" opacity=".85"/><rect x="${x + 6}" y="40" width="34" height="28" rx="3" fill="#0b0b16"/><circle cx="${x + 15}" cy="86" r="5" fill="#ffd43b"/><rect x="${x + 26}" y="82" width="12" height="6" rx="3" fill="#fff"/>`).join('') + '<text x="120" y="22" text-anchor="middle" font-size="14" font-weight="900" fill="#ff8fe6">Time to Play</text>';
+const GAME_TIPS = ['게임기 화면을 누르면 한 판 할 수 있어요', '최고 점수는 이 기기에 저장돼요', '나갈 때는 문 책장을 누르면 열려요', '벽돌깨기 · 블록 쌓기 · 핑퐁 · 2048 · 지뢰찾기 · 오목'];
+function gameLoading() {
+  const el = $('libLoad');
+  $('libLoadArt').innerHTML = GAME_ART; el.querySelector('.t').innerHTML = '🕹️ 놀이터 T 로 가는 중…<small>Time to Play · 잠깐 쉬어 가는 게임방</small>';
+  $('libLoadN').textContent = '게임기 6대가 기다리고 있어요'; $('libLoadChips').innerHTML = '';
+  $('libLoadTip').textContent = 'TIP · ' + GAME_TIPS[Math.random() * GAME_TIPS.length | 0];
+  el.classList.add('show'); let k = 0;
+  const it = setInterval(() => { k = Math.min(100, k + 8 + Math.random() * 10); $('libLoadBar').style.width = k + '%'; $('libLoadPct').textContent = Math.round(k) + '%';
+    if (k >= 100) { clearInterval(it); setTimeout(() => el.classList.remove('show'), 300); } }, 90);
+  // 방 가운데로 데려다 놓고 게임기 쪽을 보게
+  try { walkTarget = null; tapMark.visible = false; } catch (e) {}
+  const px = 6.2, pz = 25.6, dx = px - player.position.x, dz = pz - player.position.z;
+  player.position.set(px, 0, pz); player.rotation.y = 0;
+  if (!firstPerson) { controls.target.x += dx; controls.target.z += dz; camera.position.set(px, 3.4, pz - 4.2); controls.update(); }
+  else { controls.target.set(px, controls.target.y, pz); camera.position.set(px, controls.target.y, pz - 0.05); controls.update(); }
+  setTimeout(() => toast('🕹️ 놀이터 T · 게임기 화면을 누르면 한 판 할 수 있어요!'), 1500);
+}
+
 { // 엘베 옆 바깥 복도 입구 안내판: '🕹️ 놀이터 T →'
-  const t = canvasTex(512, 128, (g, w, h) => { g.fillStyle = '#120c24'; g.fillRect(0, 0, w, h); g.shadowColor = '#ff4fd8'; g.shadowBlur = 20; g.fillStyle = '#ffd1f6'; g.textAlign = 'center'; g.font = `900 58px ${FONT}`; g.fillText('🕹️ 놀이터 T →', w / 2, 86); });
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.4), new THREE.MeshBasicMaterial({ map: t, toneMapped: false })); m.position.set(-0.2, 2.45, 20.5); m.rotation.y = -Math.PI / 2; scene.add(m);
   // 바닥 화살표 (복도 따라 문까지)
   const at = canvasTex(128, 128, (g) => { g.fillStyle = 'rgba(255,79,216,.85)'; g.beginPath(); g.moveTo(20, 40); g.lineTo(80, 40); g.lineTo(80, 16); g.lineTo(120, 64); g.lineTo(80, 112); g.lineTo(80, 88); g.lineTo(20, 88); g.closePath(); g.fill(); });
   for (const x of [0.6, 2.2, 3.8]) { const a = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.6), new THREE.MeshBasicMaterial({ map: at, transparent: true, depthWrite: false })); a.rotation.x = -Math.PI / 2; a.position.set(x, 0.02, 20.5); scene.add(a); }
@@ -2865,6 +2928,8 @@ let secretDoor = null, secretDoorOpen = false, secretDoorA = 0, secretDoorCol = 
 const libSide = {};   // 카메라 쪽 벽은 자동으로 숨겨서 3인칭에서도 잘 보이게
 const libLamp = { shade: null, glow: null, pools: [] };
 const libPeople = [];
+const LIB_T0 = performance.now() / 1000;
+const npcSec = p => p.min * 60 + (p.what === '공부 중' ? performance.now() / 1000 - LIB_T0 : 0);
 const libView = {};
 const winLamps = [];
 {
@@ -3099,7 +3164,7 @@ const winLamps = [];
   });
   scene.add(iStem, iShade, iBulb, iSeat, iBack, iLeg); libLamp.inst = [iStem, iShade, iBulb]; libLamp.pos = lampPos;
   // 조용히 공부하는 사람들 + 이름표
-  const READERS = [[2, '차분한 수정테이프', '공부 중', 52], [13, '말랑한 메모지', '공부 중', 548], [21, '반짝이는 클립', '공부 중', 131], [32, '성실한 형광펜', '공부 중', 87], [41, '포근한 책갈피', '공부 중', 312], [50, '단단한 지우개', '공부 중', 64], [61, '느긋한 연필', '공부 중', 205], [69, '씩씩한 포스트잇', '공부 중', 96]];
+  const READERS = [[2, '차분한 수정테이프', '공부 중', 52], [13, '말랑한 메모지', '공부 중', 548], [21, '반짝이는 클립', '공부 중', 131], [32, '성실한 형광펜', '공부 중', 87], [41, '포근한 책갈피', '공부 중', 312], [50, '단단한 지우개', '공부 중', 64], [61, '느긋한 연필', '쉬는 중', 205], [69, '씩씩한 포스트잇', '공부 중', 96]];
   const shirts = [0xd9cbe6, 0x8aa7c9, 0xf2d4cf, 0x3a4255, 0xbfd8d2, 0xe9d7c0, 0xc9dcb0, 0xf3efe6];
   READERS.forEach(([idx, name, what, min], k) => {
     libPeople.push({ name, what, min });
@@ -3108,7 +3173,7 @@ const winLamps = [];
     c.userData.quiet = true; if (k % 3) c.userData.arms.forEach(p => { p.rotation.x = -0.95; p.rotation.z *= -2; });
     const ch = chairs.find(o => o.study && Math.abs(o.x - x) < 0.01 && Math.abs(o.z - zz) < 0.01); if (ch) ch.taken = true;
     const bk = box(0.3, 0.03, 0.22, M([0x7a2a2a, 0x2b3f66, 0x8a5a2a][k % 3]), x - 0.1, 0.8, z + (ry ? -0.55 : 0.55)); bk.rotation.y = ry;
-    const lab = bubbleSprite(`● ${name} · 공부 ${min}분`, 44); lab.material.depthTest = true; lab.scale.multiplyScalar(0.5); lab.position.set(x, 1.95, zz); scene.add(lab);
+    const lab = bubbleSprite(what === '공부 중' ? `● ${name} · 공부 ${min}분` : `☕ ${name} · 잠깐 쉬는 중`, 44); Object.assign(libPeople[libPeople.length - 1], { ch: c, lab, lm: min }); lab.material.depthTest = true; lab.scale.multiplyScalar(0.5); lab.position.set(x, 1.95, zz); scene.add(lab);
   });
   // 🚪 비밀 책장 문 (복도 쪽에서 보면 그냥 책장 · 금빛 책 한 권)
   secretDoor = new THREE.Group(); secretDoor.position.set(-13.2, 0, 12.6); scene.add(secretDoor);
@@ -3161,7 +3226,7 @@ function libLoading() {
   if (LIB_ART) $('libLoadArt').innerHTML = LIB_ART; el.querySelector('.t').innerHTML = '📚 비밀의 도서관 K 문이 열리는 중…<small>Keep · 지식을 간직하는 비밀의 도서관</small>';
   const n = libPeople.length + 1 + [...remotes.values()].filter(r => r.ch.position.x > SROOM.x0 && r.ch.position.x < SROOM.x1 && r.ch.position.z > SROOM.z0 && r.ch.position.z < SROOM.z1).length;
   $('libLoadN').textContent = `지금 ${n}명이 공부하고 있어요`;
-  const chips = libPeople.map(p => `<span><b>●</b> ${p.name} · 공부 ${p.min}분</span>`).join('');
+  const chips = libPeople.map(p => `<span><b>●</b> ${p.name} · ${p.what === '공부 중' ? '공부 ' + Math.floor(npcSec(p) / 60) + '분' : '쉬는 중'}</span>`).join('');
   $('libLoadChips').innerHTML = chips + chips;
   $('libLoadTip').textContent = 'TIP · ' + LIB_TIPS[Math.random() * LIB_TIPS.length | 0];
   el.classList.add('show'); let k = 0;
@@ -3188,6 +3253,7 @@ function updateSecret(t, dt) {
   autoClose('lib', secretDoorOpen, -12.6, 12.9, toggleSecretDoor, dt);
   secretDoor.userData.gold.material.emissiveIntensity = 0.35 + (Math.sin(t * 2.4) + 1) * 0.35;
   const inside = mode === 'walk' && inSecretRoom();
+  if (inside && t - tower.t > 2) { tower.t = t; try { towerTick(); } catch (e) { console.error(e); } }
   if (inside && !updateSecret.was) {
     updateSecret.was = true;
     try { libLoading(); } catch (e) { console.error(e); }
@@ -4270,6 +4336,156 @@ function openStudyCfg() {
   $('cfgFocus').textContent = studyCfg.focus; $('cfgRest').textContent = studyCfg.rest; $('studyCfgView').classList.add('show');
 }
 
+
+/* ================= 📇 오늘의 열람 카드 (비밀의 도서관 K · 오른쪽 2층 난간) ================= */
+LIB_TIPS.push('📇 오른쪽 책장 앞 「열람 카드 자판기」를 누르면 조용히 응원을 보낼 수 있어요');
+const TOWER_COLS = ['#7a2a2a', '#2b3f66', '#8a5a2a', '#3a5a6a', '#6b3a4a', '#2f6a4a', '#a8783a', '#5a4a7a'];
+const tower = { cv: document.createElement('canvas'), tex: null, t: -10, list: [], open: false };
+tower.cv.width = 1024; tower.cv.height = 576;
+tower.tex = new THREE.CanvasTexture(tower.cv); tower.tex.colorSpace = THREE.SRGBColorSpace; tower.tex.anisotropy = 8;
+{
+  // 📇 열람 카드 자판기 (오른쪽 책장 앞 · 러그 옆)
+  const tb = new THREE.Group(); tb.position.set(SROOM.x1 - 0.9, 0, 31.0); tb.rotation.y = -Math.PI / 2; libTall.add(tb);
+  const bodyM = M(0x2f5a48, { roughness: 0.45 }), goldM = M(0xc9a24a, { metalness: 0.7, roughness: 0.3 }), darkM = M(0x1a1714, { roughness: 0.4 });
+  box(1.0, 1.95, 0.7, bodyM, 0, 0.975, 0, tb);                         // 몸통
+  box(1.06, 0.06, 0.76, goldM, 0, 1.98, 0, tb); box(1.06, 0.08, 0.76, goldM, 0, 0.04, 0, tb);   // 금빛 위아래 띠
+  for (const x of [-0.5, 0.5]) box(0.04, 1.9, 0.04, goldM, x, 0.975, 0.36, tb);
+  const top = canvasTex(512, 112, (c, w, h) => { c.fillStyle = '#1a1714'; c.fillRect(0, 0, w, h); c.shadowColor = '#ffd98a'; c.shadowBlur = 16; c.fillStyle = '#ffe2a8'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = `bold 50px ${FONT}`; c.fillText('📇 열람 카드', w / 2, 52); c.shadowBlur = 0; c.font = `20px ${FONT}`; c.fillStyle = '#c9a24a'; c.fillText('READING CARD · K', w / 2, 94); });
+  const tp = new THREE.Mesh(new THREE.PlaneGeometry(0.92, 0.2), new THREE.MeshBasicMaterial({ map: top, toneMapped: false })); tp.position.set(0, 1.84, 0.356); tb.add(tp);
+  box(0.94, 0.56, 0.03, darkM, 0, 1.4, 0.36, tb);                       // 화면 테두리
+  const tm = new THREE.Mesh(new THREE.PlaneGeometry(0.88, 0.495), new THREE.MeshBasicMaterial({ map: tower.tex, toneMapped: false })); tm.position.set(0, 1.4, 0.378); tb.add(tm);
+  // 버튼 3개 (🔥 👏 ☕ 색) + 카드 나오는 곳
+  [[-0.2, 0xff6b4a], [0, 0xffc94d], [0.2, 0x9a6a3a]].forEach(([x, col]) => { const b = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.04, 16), new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 0.35 })); b.rotation.x = Math.PI / 2; b.position.set(x, 1.0, 0.37); tb.add(b); });
+  box(0.5, 0.06, 0.05, darkM, 0, 0.72, 0.36, tb);                       // 카드 구멍
+  const cardT = canvasTex(256, 160, (c, w, h) => { c.fillStyle = '#f3e9cf'; c.fillRect(0, 0, w, h); c.fillStyle = '#b8322c'; c.fillRect(10, 30, w - 20, 3); c.fillStyle = 'rgba(70,110,170,.6)'; for (let y = 60; y < h; y += 26) c.fillRect(10, y, w - 20, 2); c.fillStyle = '#2b2a3a'; c.font = `bold 22px ${FONT}`; c.fillText('열람 카드', 14, 22); });
+  const card = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.2), new THREE.MeshBasicMaterial({ map: cardT })); card.position.set(0, 0.8, 0.4); card.rotation.x = -0.5; tb.add(card);
+  box(0.8, 0.3, 0.04, darkM, 0, 0.3, 0.36, tb);                         // 아래 꺼내는 칸
+  const hit = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.95, 0.75), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })); hit.position.set(0, 0.975, 0.02); tb.add(hit);
+  for (const m of [tm, tp, hit]) { m.userData.dept = 'tower'; signMeshes.push(m); }
+  colliders.push([SROOM.x1 - 1.25, SROOM.x1 - 0.55, 30.5, 31.5]);
+}
+const twEsc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmtHM = s => { s = Math.max(0, Math.floor(s)); return `${Math.floor(s / 3600)}:${String(Math.floor(s / 60) % 60).padStart(2, '0')}`; };
+const remoteSec = r => r.st.sec + (r.st.on && r.st.ph === 'focus' ? Math.min(90, now - r.st.at) : 0);
+const remoteInLib = r => r.st && r.st.lib && now - r.st.at < 30;
+function towerList() {
+  const out = [];
+  libPeople.forEach((p, i) => out.push({ k: 'n' + i, name: p.name, sec: npcSec(p), on: p.what === '공부 중', ph: p.what === '공부 중' ? 'focus' : 'rest', p }));
+  for (const [id, r] of remotes) if (remoteInLib(r)) out.push({ k: 'r' + id, id, name: r.name || '친구', sec: remoteSec(r), on: r.st.on, ph: r.st.ph, r });
+  if (mode === 'walk' && inSecretRoom()) out.push({ k: 'me', me: true, name: libNick(), sec: studyToday() + (study ? study.saved : 0), on: !!study, ph: study ? study.phase : '' });
+  out.sort((a, b) => b.sec - a.sec);
+  return out;
+}
+const twState = a => a.on ? (a.ph === 'rest' ? '☕ 쉬는 시간' : '● 공부 중') : a.me ? '🚶 둘러보는 중' : '☕ 잠깐 쉬는 중';
+function drawTower() {
+  const L = tower.list = towerList(), c = tower.cv.getContext('2d'), w = 1024, h = 576;
+  // 누렇게 바랜 종이
+  c.fillStyle = '#f3e9cf'; c.fillRect(0, 0, w, h);
+  const vg = c.createRadialGradient(w / 2, h / 2, 200, w / 2, h / 2, 640); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(120,80,30,.22)'); c.fillStyle = vg; c.fillRect(0, 0, w, h);
+  for (let k = 0; k < 160; k++) { c.fillStyle = `rgba(140,100,50,${Math.random() * 0.06})`; c.fillRect(Math.random() * w, Math.random() * h, 2 + Math.random() * 3, 2 + Math.random() * 3); }
+  const ink = '#2b2a3a', red = '#b8322c', blue = 'rgba(70,110,170,.55)';
+  c.textBaseline = 'middle';
+  c.textAlign = 'left'; c.fillStyle = ink; c.font = `bold 40px ${FONT}`; c.fillText('오늘의 열람 카드', 48, 56);
+  c.font = `22px ${FONT}`; c.fillStyle = '#6a5a40'; const d = new Date(Date.now() + 9 * 3600e3);
+  c.fillText(`비밀의 도서관 K · ${d.getUTCFullYear()}. ${d.getUTCMonth() + 1}. ${d.getUTCDate()}.`, 52, 98);
+  // 빨간 도장 (오른쪽 위)
+  c.save(); c.translate(w - 120, 74); c.rotate(-0.18); c.strokeStyle = 'rgba(184,50,44,.8)'; c.lineWidth = 5; c.beginPath(); c.arc(0, 0, 50, 0, Math.PI * 2); c.stroke(); c.lineWidth = 2; c.beginPath(); c.arc(0, 0, 41, 0, Math.PI * 2); c.stroke();
+  c.fillStyle = 'rgba(184,50,44,.85)'; c.textAlign = 'center'; c.font = `900 34px ${FONT}`; c.fillText('K', 0, -6); c.font = `bold 13px ${FONT}`; c.fillText('KEEP', 0, 22); c.restore();
+  // 표 머리 (빨간 두 줄)
+  const tx = [48, 130, 520, 760], top = 126;
+  c.fillStyle = red; c.fillRect(36, top, w - 72, 3); c.fillRect(36, top + 40, w - 72, 2);
+  c.fillStyle = '#7a3030'; c.font = `bold 20px ${FONT}`; c.textAlign = 'left';
+  ['번호', '열람자', '열람 시간', '상태'].forEach((t, k) => c.fillText(t, tx[k] + (k === 0 ? 4 : 0), top + 21));
+  c.fillStyle = red; for (const x of [118, 506, 746]) c.fillRect(x, top, 2, 9 * 40 + 40);
+  const N = Math.min(L.length, 9);
+  for (let i = 0; i < 9; i++) {
+    const y = top + 40 + i * 40;
+    c.fillStyle = blue; c.fillRect(36, y + 40, w - 72, 1.5);
+    const a = L[i]; if (!a) continue;
+    if (a.me) { c.fillStyle = 'rgba(255,214,70,.55)'; c.fillRect(124, y + 6, 376, 30); }
+    c.fillStyle = '#8a7a5a'; c.font = `20px ${FONT}`; c.textAlign = 'center'; c.fillText(String(i + 1), 78, y + 21);
+    c.textAlign = 'left'; c.fillStyle = ink; c.font = `bold 25px ${FONT}`; let nm = a.name + (a.me ? ' (나)' : ''); while (c.measureText(nm).width > 360 && nm.length > 2) nm = nm.slice(0, -1); c.fillText(nm, tx[1], y + 21);
+    // 열람 시간: 보라 잉크 도장 느낌
+    c.fillStyle = 'rgba(90,60,150,.85)'; c.font = `bold 24px ${FONT}`; c.fillText(fmtMin(a.sec), tx[2], y + 21);
+    const st = twState(a); c.font = `20px ${FONT}`; c.fillStyle = st.includes('공부') ? '#2f7a4a' : '#9a6a20'; c.fillText(st.replace('● 공부 중', '✏️ 열람 중'), tx[3], y + 21);
+  }
+  const total = L.reduce((s, a) => s + a.sec, 0);
+  c.textAlign = 'left'; c.fillStyle = ink; c.font = `bold 24px ${FONT}`; c.fillText(`다 함께 ${fmtMin(total)} · 지금 ${L.length}명`, 48, 548);
+  c.textAlign = 'right'; c.fillStyle = '#6a5a40'; c.font = `20px ${FONT}`; c.fillText(L.length > N ? `외 ${L.length - N}명 · 눌러서 모두 보기 · 조용히 응원하기` : '🤫 눌러서 조용히 응원하기 · 자정에 새 카드', w - 48, 548);
+  tower.tex.needsUpdate = true;
+}
+function towerTick() {
+  drawTower();
+  libPeople.forEach(p => {
+    if (!p.lab) return; const m = Math.floor(npcSec(p) / 60); if (p.lm === m) return; p.lm = m;
+    const sp = bubbleSprite(p.what === '공부 중' ? `● ${p.name} · 공부 ${m}분` : `☕ ${p.name} · 잠깐 쉬는 중`, 44);
+    sp.material.depthTest = true; sp.scale.multiplyScalar(0.5); sp.position.copy(p.lab.position);
+    scene.remove(p.lab); p.lab.material.map.dispose(); p.lab = sp; scene.add(sp);
+  });
+  for (const r of remotes.values()) {
+    const want = remoteInLib(r) ? (r.st.on ? `● ${r.name || '친구'} · 공부 ${Math.floor(remoteSec(r) / 60)}분` : `${r.name || '친구'} · 둘러보는 중`) : (r.name || '친구');
+    if (r.tagTxt === want || (!r.tagTxt && want === (r.name || '친구'))) continue;
+    r.tagTxt = want; r.ch.remove(r.tag); try { r.tag.material.map.dispose(); } catch (e) {}
+    r.tag = textSprite(want, 46); r.tag.position.y = 2.0; r.tag.scale.multiplyScalar(0.8); r.ch.add(r.tag);
+  }
+  if (tower.open) renderTowerList();
+}
+const cheerKey = () => 'ktrfCheer_' + todayKey().slice(11);
+const cheerGot = () => { try { return +localStorage.getItem(cheerKey()) || 0; } catch (e) { return 0; } };
+function renderTowerList() {
+  const L = tower.list, total = L.reduce((s, a) => s + a.sec, 0);
+  $('twSum').textContent = `다 함께 ${fmtMin(total)} · 지금 ${L.length}명`;
+  $('twList').innerHTML = L.map(a => {
+    const col = a.me ? '#e0ac2e' : TOWER_COLS[hashOf(a.name) % TOWER_COLS.length], st = twState(a).replace('● 공부 중', '✏️ 열람 중');
+    const right = a.me ? `<span class="got">받은 응원 ${cheerGot()}</span>` : ['🔥', '👏', '☕'].map(e => `<button data-k="${a.k}" data-e="${e}">${e}</button>`).join('');
+    return `<div class="twRow${a.me ? ' me' : ''}"><i style="background:${col}"></i><div class="nm">${twEsc(a.name)}${a.me ? ' (나)' : ''}<small class="${st.includes('열람') ? '' : 'rest'}">${st}</small></div><span class="tm">${fmtHM(a.sec)}</span>${right}</div>`;
+  }).join('');
+}
+function openTower() { tower.open = true; drawTower(); renderTowerList(); $('tower').classList.add('show'); }
+const CHEER = { '🔥': '힘내요', '👏': '대단해요', '☕': '잠깐 쉬어요' };
+let lastCheer = -10;
+function sendCheer(k, e) {
+  if (!CHEER[e]) return;
+  if (now - lastCheer < 2) { toast('🤫 조금만 천천히 응원해 주세요'); return; }
+  lastCheer = now;
+  const a = tower.list.find(o => o.k === k); if (!a) return;
+  if (a.p && a.p.ch) showEmoji(a.p.ch, e, 2.4);
+  if (a.r) { showEmoji(a.r.ch, e, 2.4); if (connected && chan) chan.send({ type: 'broadcast', event: 'cheer', payload: { id: myId, name: libNick(), to: a.id, e } }); }
+  toast(`${e} ${a.name}님에게 조용히 「${CHEER[e]}」 응원을 보냈어요`);
+}
+function onCheer(p) {
+  if (!p || p.id === myId || !CHEER[p.e]) return;
+  if (p.to === myId) {
+    showEmoji(player, p.e, 2.6); toast(`${p.e} ${String(p.name || '친구').slice(0, 10)}님이 조용히 「${CHEER[p.e]}」 응원을 보냈어요`);
+    try { localStorage.setItem(cheerKey(), String(cheerGot() + 1)); } catch (e) {}
+  } else { const t = remotes.get(p.to); if (t) showEmoji(t.ch, p.e, 2.4); }
+}
+let lastStudyKey = '';
+function sendStudy() {
+  if (!connected || !chan) return;
+  const pl = { id: myId, name: myName, sec: Math.round(studyToday() + (study ? study.saved : 0)), on: !!study, ph: study ? study.phase : '', lib: mode === 'walk' && inSecretRoom() };
+  lastStudyKey = `${pl.on},${pl.ph},${pl.lib}`;
+  chan.send({ type: 'broadcast', event: 'study', payload: pl });
+}
+function onStudy(p) {
+  if (!p || p.id === myId) return;
+  const sec = Number(p.sec); if (!Number.isFinite(sec) || sec < 0 || sec > 86400) return;
+  const r = remotes.get(p.id) || addRemote(p.id, p.name);
+  r.st = { sec, on: !!p.on, ph: p.ph === 'rest' ? 'rest' : 'focus', lib: !!p.lib, at: now };
+}
+setTimeout(() => {
+  $('twX').addEventListener('click', () => { tower.open = false; $('tower').classList.remove('show'); });
+  $('tower').addEventListener('click', e => { if (e.target.id === 'tower') { tower.open = false; $('tower').classList.remove('show'); } });
+  $('twList').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (b) sendCheer(b.dataset.k, b.dataset.e); });
+  try { drawTower(); } catch (e) {}
+  let tick = 0;
+  setInterval(() => { tick++;
+    if (!connected) return;
+    const key = `${!!study},${study ? study.phase : ''},${mode === 'walk' && inSecretRoom()}`;
+    if (key !== lastStudyKey || tick % 8 === 0) sendStudy();
+  }, 1000);
+}, 0);
+
 /* ================= ⏳ 성과보고회 D-day 전광판 (엘베 로비 왼쪽 벽) ================= */
 const EVENT_DAY = new Date('2026-12-17T00:00:00+09:00');
 function eventDday() { const kstNow = new Date(Date.now() + 9 * 3600e3); const today = Date.UTC(kstNow.getUTCFullYear(), kstNow.getUTCMonth(), kstNow.getUTCDate()) - 9 * 3600e3;
@@ -4708,6 +4924,7 @@ function blocked(x, z) {
   if (x > SROOM.x0 && x < SROOM.x1 && z > 12.9 && z < SROOM.z1) { /* 비밀의 도서관 안 */ }
   else if (x > 29.5 && x < PLAZA.x1 - 0.3 && z > PLAZA.z0 + 0.3 && z < PLAZA.z1 - 0.3) { /* 불멍 광장 */ }
   else if (z < -11.7 && ((x > GCOR.x0 && x < GCOR.x1 && z > GAL.z1 - 0.5) || (x > GAL.x0 && x < GAL.x1 && z > GAL.z0 && z <= GAL.z1 + 0.3))) { /* 미술관 · 유리 복도 */ }
+  else if (x > GAME.x0 && x < GAME.x1 && z > 21.5 && z < GAME.z1) { /* 🕹️ 놀이터 T */ }
   else if (x < -26.35 || x > 29.75 || z < -11.75 || z > 21.75) return true;
   for (const c of colliders) if (x > c[0] - R && x < c[1] + R && z > c[2] - R && z < c[3] + R) return true;
   return false;
@@ -4951,10 +5168,10 @@ function syncPresence() {
   for (const id of ids) {
     if (id === myId) continue;
     const info = (st[id] && st[id][0]) || {};
-    if (!remotes.has(id)) { addRemote(id, info.name, info.look); showChat(remotes.get(id).ch, '👋 안녕하세요'); setTimeout(() => sendPet(true), 600); }
+    if (!remotes.has(id)) { addRemote(id, info.name, info.look); showChat(remotes.get(id).ch, '👋 안녕하세요'); setTimeout(() => { sendPet(true); sendStudy(); }, 600); }
     else {
       const r = remotes.get(id);
-      if (info.name && info.name !== r.name) { r.name = info.name; r.ch.remove(r.tag); r.tag = textSprite(info.name, 46); r.tag.position.y = 2.0; r.tag.scale.multiplyScalar(0.8); r.ch.add(r.tag); }
+      if (info.name && info.name !== r.name) { r.name = info.name; r.ch.remove(r.tag); r.tagTxt = info.name; r.tag = textSprite(info.name, 46); r.tag.position.y = 2.0; r.tag.scale.multiplyScalar(0.8); r.ch.add(r.tag); }
       if (info.look && info.look.s) { const js = JSON.stringify(info.look); if (r.look !== js) { r.look = js; restyle(r.ch, info.look); } }
     }
   }
@@ -5062,6 +5279,8 @@ async function connectRoom() {
       .on('broadcast', { event: 'chat' }, ({ payload }) => onChat(payload))
       .on('broadcast', { event: 'act' }, ({ payload }) => onAct(payload))
       .on('broadcast', { event: 'pet' }, ({ payload }) => onPet(payload))
+      .on('broadcast', { event: 'study' }, ({ payload }) => onStudy(payload))
+      .on('broadcast', { event: 'cheer' }, ({ payload }) => onCheer(payload))
       .subscribe(async (status, err) => {
         if (chan !== myChan) return;
         if (status === 'SUBSCRIBED') {
@@ -5070,7 +5289,7 @@ async function connectRoom() {
           await new Promise(r => setTimeout(r, 700));   // 먼저 들어온 사람들 목록을 받아요
           uniqueName(false);
           await chan.track({ name: myName, look: myLook, at: myJoinAt });
-          updateOnline(); sendMove(true); sendPet(true);
+          updateOnline(); sendMove(true); sendPet(true); sendStudy();
           toast(`"${roomName}" 방에 들어왔어요 👋`);
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
           if (status !== 'CLOSED') {
@@ -5343,7 +5562,7 @@ const mapCv = $('mapCv'), mapG = mapCv.getContext('2d'), MW = mapCv.width, MH = 
 const mx = x => (x - MAP.x0) / (MAP.x1 - MAP.x0) * MW, mz = z => (z - MAP.z0) / (MAP.z1 - MAP.z0) * MH;
 const ROOMS = [['정보관', -1.0, -6.5], ['민원센터', 10.8, -6], ['서가', -13.3, 6], ['서가', 6.5, 6], ['연구소', -24.6, 6],
   ['회의실2', -20.2, 5], ['회의실1', 18.4, -6], ['휴게실', 18.4, 4], ['총무부', 26.2, 0.5], ['이사장실', 26.2, -8], ['국장실', 26.2, 8.7],
-  ['탕비실', 5.5, 14.8], ['로비', -4, 17.5], ['화장실', 16.5, 16.5], ['🕹️ 놀이터 T', 7, 26.6]];
+  ['탕비실', 5.5, 14.8], ['로비', -4, 17.5], ['화장실', 16.5, 16.5], ['🕹️ 놀이터 T 입구', 5.7, 20.9]];
 const SECRET_SPARK = [[-12.6, 12.3, 0], [29.4, 5.55, 2.1], [9.2, -11.85, 4.2]];   // 비밀의 도서관 책장 문 · 불멍 광장 책장 문
 function sparkle(g, x, y, r, a) {
   g.save(); g.globalAlpha = Math.max(0.15, a); g.translate(x, y);
@@ -6083,6 +6302,7 @@ function animate() {
   safe(() => { updateGold(); });
   safe(() => { updateSteam(performance.now() / 1000); });
   safe(() => { updateSecret(performance.now() / 1000, 1 / 60); });
+  safe(() => { updateGameDoor(performance.now() / 1000, 1 / 60); });
   safe(() => { updateFire(performance.now() / 1000, 1 / 60); });
   if (quizBubble) quizBubble.position.y = 1.95 + Math.sin(performance.now() / 600) * 0.05;
   updateRemotes(dt);
@@ -6296,5 +6516,6 @@ addEventListener('resize', () => {
 const ld = document.getElementById('loading');
 ld.style.opacity = 0; setTimeout(() => ld.remove(), 700);
 </script>
+<div id="tower"><div class="twBox"><div class="twTop"><b>📇 오늘의 열람 카드</b><button id="twX" aria-label="닫기">✕</button></div><div id="twSum"></div><div id="twList"></div><div class="twNote">🤫 도서관에서는 말 대신 조용한 응원만 보내요. 🔥 힘내요 · 👏 대단해요 · ☕ 잠깐 쉬어요<br>카드는 자정(밤 12시)에 새로 시작해요. 친구는 「친구랑 만나기」로 같은 방에 들어온 사람만 보여요.</div></div></div>
 </body>
 </html>

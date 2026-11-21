@@ -45,7 +45,7 @@
   #guideNext { border: none; border-radius: 999px; padding: 10px 20px; background: #1f3a5f; color: #fff; font: bold 15px sans-serif; cursor: pointer; }
   #homeBtn { position: fixed; left: 14px; bottom: 18px; z-index: 12; display: none; border: none; border-radius: 999px; padding: 8px 14px; font-size: 13px !important; background: rgba(255,255,255,.92); color: #1f3a5f; font: bold 15px sans-serif; box-shadow: 0 4px 16px rgba(0,0,0,.25); cursor: pointer; }
   body.secretZone #homeBtn { display: block; } body.skyView #homeBtn { display: none !important; }
-  @media (max-width: 600px), (pointer: coarse) { #homeBtn { padding: 7px 12px; font-size: 12.5px !important; bottom: auto; top: 78px; } }   /* 휴대폰: 왼쪽 위 작게 (조이스틱 피해서) */
+  @media (max-width: 600px), (pointer: coarse) { #homeBtn { padding: 7px 12px; font-size: 12.5px !important; left: auto; right: 12px; bottom: 84px; top: auto; opacity: .92; } body.menuOpen #homeBtn { display: none !important; } }   /* 휴대폰: 오른쪽 아래, 메뉴 버튼 바로 위에 작게 */
   #tipCard { position: fixed; left: 50%; bottom: 96px; transform: translate(-50%, 12px); z-index: 11; width: max-content; max-width: 90vw; padding: 12px 18px; border-radius: 18px; background: rgba(20,28,44,.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: #fff; font-family: sans-serif; opacity: 0; pointer-events: none; transition: opacity .5s, transform .5s; text-align: center; }
   #tipCard.show { opacity: 1; transform: translate(-50%, 0); } #tipCard .tl { font-size: 12.5px; color: #ffd9a0; font-weight: bold; } #tipCard p { margin: 4px 0 0; font-size: 15px; line-height: 1.5; }
   body.skyView #tipCard, body.skyView #guide { display: none !important; }
@@ -360,7 +360,7 @@
   <button id="placeBtn" class="place">📍 장소 이동</button>
   <button data-z="all" class="on">전체</button>
   <button data-z="entrance">출입문</button>
-  <button data-z="stacks">서고·열람공간</button>
+  <button data-z="stacks">서가·열람공간</button>
   <button data-z="info">교과서정보관</button>
   <button data-z="center">민원바로처리센터</button>
   <button data-z="meeting">제1회의실</button>
@@ -1975,7 +1975,7 @@ const cleaner = makeChar({ shirt: 0x8fb8de, hair: 0x5a4a42, pants: 0x4f5d75, lon
 }
 cleaner.position.set(8, 0, 20.4);
 
-/* ================= 부서 푯말 (누르면 소개) ================= */
+/* ================= 부서 안내판 (누르면 소개) ================= */
 // ▼ 소개 글은 여기만 고치면 돼요. lines는 '하는 일' 목록, link는 '자세히 보기' 주소예요.
 const DEPT_INFO = {
   ktrf:     { name: '한국교과서연구재단', intro: '교과서의 질을 높이고자 1992년 비영리공익법인으로 설립된, 교과서 개발·연구·질 관리 등 교과서에 관한 종합적 관리 역량을 갖춘 국내 유일의 교과서 전문 연구기관입니다.', lines: [
@@ -2003,7 +2003,7 @@ const DEPT_INFO = {
     '연구 성과의 발전적인 확산',
     '교과서의 미래를 선도하는 전문 연구 추진',
   ], link: 'https://textbook.ac/business/laboratoryInfo.jsp?menu=1&sub=1' },
-  stacks:   { name: '서고 및 열람공간', intro: '🕘 이용 시간: 월~금 9:00~17:00 (점심시간 12:00~13:00)', lines: [
+  stacks:   { name: '서가 및 열람공간', intro: '🕘 이용 시간: 월~금 9:00~17:00 (점심시간 12:00~13:00)', lines: [
     '휴관: 주말·공휴일·국경일·재단 창립기념일 (그 밖의 휴관은 홈페이지 공지)',
     '이용 절차: ① 외부 이용자는 「외부이용자대장」 작성 → ② 담당자 안내에 따라 「열람신청서」 작성 후 열람',
     '자료의 관외 대출은 할 수 없어요',
@@ -2149,7 +2149,7 @@ for (let i = 0; i < 8; i++) shelfSign(1 + i, -16.83 + i * 1.04, 9.43, 0);
 for (let i = 0; i < 11; i++) { shelfSign(9 + i, 0.5 + i * 1.2, 2.18, Math.PI); shelfSign(9 + i, 0.5 + i * 1.2, 9.43, 0); }
 deptSign('info', -2.2, -0.5, 0);
 deptSign('center', 9.2, -0.4, 0);
-deptSign('stacks', -8.6, 10.6, 0);
+deptSign('stacks', -7.4, 3.95, 0);   // 열람 테이블 바로 옆 (잘 보이게)
 deptSign('lab', -20.7, 10.2, Math.PI / 2);   // 건물 넓힌 뒤 x -23.3 (학술지 액자 앞을 가리지 않게)
 
 const infoEl = document.getElementById('info');
@@ -2228,7 +2228,7 @@ function label(text, x, y, z, size = 4.2) {
 }
 // (출입문 표기 지움)
 // (안내데스크 표기 지움)
-label('서고 및 열람공간', 4.5, 3.9, 5.8);
+label('서가 및 열람공간', 4.5, 3.9, 5.8);
 label('교과서정보관', -1.0, 3.6, -7);
 label('서버실', 4.9, 3.3, -6.5, 3);
 label('교과서민원바로처리센터', 10.8, 3.6, -5.5, 5);
@@ -3329,14 +3329,14 @@ function updateGallery(t, dt) {
     for (const m of galWalls.w) m.visible = !(inG && cx < GAL.x0);
     for (const m of galWalls.e) m.visible = !(inG && cx > GAL.x1);
   }
-  if (inG && !firstPerson && !deskView && !skyView) { controls.maxPolarAngle = 1.85; if (controls.maxDistance > 8) controls.maxDistance = 8; galCam = true; }   // 돔을 올려다볼 수 있게
+  if (inG && !firstPerson && !deskView && !skyView) { if (!galCam) { controls.maxPolarAngle = 1.3; controls.maxDistance = 20; } galCam = true; }   // 갤러리: 멀리 줌아웃해서 전체를 볼 수 있게
   else if (galCam && !inG) { galCam = false; if (!firstPerson) { controls.maxPolarAngle = 1.15; controls.maxDistance = 14; } }
   // 갤러리 문·복도 근처: 카메라를 캐릭터 가까이 붙여서 칸막이·벽에 가려 답답하지 않게
   { const px = player.position.x, pz = player.position.z;
     const nearDoor = mode === 'walk' && !firstPerson && !deskView && !skyView && px > GCOR.x0 - 0.6 && px < GCOR.x1 + 0.6 && pz > GAL.z1 - 0.5 && pz < GDOOR.z + 2.6;
     doorFade(nearDoor || (mode === 'walk' && px > 5.5 && px < 13 && pz > -12.4 && pz < -6));   // 책장 근처에 가면 위쪽 판들이 반투명
     if (nearDoor) { if (!updateGallery.tight) { updateGallery.tight = controls.maxDistance; } controls.maxDistance = 2.2; }
-    else if (updateGallery.tight) { controls.maxDistance = inG ? 8 : updateGallery.tight; updateGallery.tight = 0; } }
+    else if (updateGallery.tight) { controls.maxDistance = inG ? 20 : updateGallery.tight; updateGallery.tight = 0; } }
   if (inG && !galWas && player.position.z < GAL.z1 + 0.5) { galWas = true; toast('🖼️ 우리들의 갤러리 F에 오신 걸 환영해요 · 작품을 누르면 크게 볼 수 있어요'); }
   if (!inG) galWas = false;
 }
@@ -4927,7 +4927,7 @@ $('shotShare').addEventListener('click', async () => {
 const MAP = { x0: -27.2, x1: 39.0, z0: -24.0, z1: 23.7 };   // 위쪽 갤러리 F 까지 보이게   // 숨은 공간이 가장자리에 살짝 보이게 넓힘
 const mapCv = $('mapCv'), mapG = mapCv.getContext('2d'), MW = mapCv.width, MH = mapCv.height;
 const mx = x => (x - MAP.x0) / (MAP.x1 - MAP.x0) * MW, mz = z => (z - MAP.z0) / (MAP.z1 - MAP.z0) * MH;
-const ROOMS = [['정보관', -1.0, -6.5], ['민원센터', 10.8, -6], ['서고', -13.3, 6], ['서고', 6.5, 6], ['연구소', -24.6, 6],
+const ROOMS = [['정보관', -1.0, -6.5], ['민원센터', 10.8, -6], ['서가', -13.3, 6], ['서가', 6.5, 6], ['연구소', -24.6, 6],
   ['회의실2', -20.2, 5], ['회의실1', 18.4, -6], ['휴게실', 18.4, 4], ['총무부', 26.2, 0.5], ['이사장실', 26.2, -8], ['국장실', 26.2, 8.7],
   ['탕비실', 5.5, 14.8], ['로비', -4, 17.5], ['화장실', 16.5, 16.5]];
 const SECRET_SPARK = [[-12.6, 12.3, 0], [29.4, 5.55, 2.1], [9.2, -11.85, 4.2]];   // 비밀의 도서관 책장 문 · 불멍 광장 책장 문
@@ -4981,7 +4981,7 @@ drawMapBase();
 let mapT = 0;
 
 /* ================= 📍 장소 이동 (지도 / 목록으로 보기) ================= */
-const PLACES = [['entrance', '출입문', -4, 17.5, '엘리베이터 로비'], ['stacks', '서고·열람공간', -11.5, 6, '책장 19개 · 열람석'], ['info', '교과서정보관', -1.0, -6.5, '국내외 교과서'],
+const PLACES = [['entrance', '출입문', -4, 17.5, '엘리베이터 로비'], ['stacks', '서가·열람공간', -11.5, 6, '책장 19개 · 열람석'], ['info', '교과서정보관', -1.0, -6.5, '국내외 교과서'],
   ['center', '민원바로처리센터', 9.4, -5, '☎ 1566-8572'], ['meeting', '제1회의실', 18.6, -8, '화상회의 중'],
   ['lab', '교과서연구소', -24.6, 7.5, '학술지 · 연구보고서'], ['meeting2', '제2회의실', -20.2, 3.2, ''], ['chair', '이사장실', 26.2, -8, ''],
   ['admin', '총무부', 26.2, 0.5, ''], ['director', '사무국장실', 26.2, 8.7, '']];
@@ -5064,7 +5064,7 @@ for (const k in stampGot) if (!STAMPS.some(s => s.id === k)) delete stampGot[k];
 function stampCount() { return STAMPS.filter(s => stampGot[s.id]).length; }
 function stampRefresh() {
   $('stampN').textContent = `${stampCount()}/${STAMPS.length}`;
-  DEPT_INFO.stamps = { name: '🎯 재단 나들이 스탬프 투어', paras: [stampCount() === STAMPS.length ? '🏅 모든 스탬프를 모았어요! 완주 축하해요!' : '교과서연구소·교과서정보관·교과서민원바로처리센터를 돌아다니며 스탬프 3개를 모아 보세요. 부서 푯말을 누르거나 푯말 가까이 가면 찍혀요!'],
+  DEPT_INFO.stamps = { name: '🎯 재단 나들이 스탬프 투어', paras: [stampCount() === STAMPS.length ? '🏅 모든 스탬프를 모았어요! 완주 축하해요!' : '교과서연구소·교과서정보관·교과서민원바로처리센터를 돌아다니며 스탬프 3개를 모아 보세요. 부서 안내판을 누르거나 안내판 가까이 가면 찍혀요!'],
     lines: STAMPS.map(s => `${stampGot[s.id] ? '✅' : '⬜'} ${s.icon} ${s.name}`) };
 }
 stampRefresh();
@@ -5208,11 +5208,11 @@ $('lookDone').addEventListener('click', () => { $('lookView').classList.remove('
 /* ================= 🧭 자동 안내 투어 ================= */
 const TOUR = [
   { key: 'ktrf', name: '안내데스크', text: '한국교과서연구재단에 오신 걸 환영해요! 안내데스크에서 재단 이용 안내를 받을 수 있어요.', p: [-1.6, 5.2, 15.5], t: [-4.2, 0.8, 8.6] },
-  { key: 'stacks', own: true, name: '서고', text: '제1차부터 2009 개정 교육과정까지, 국내 교과서가 교육과정별로 빼곡히 꽂혀 있어요.', p: [6.5, 8.5, 15.5], t: [6.5, 0.6, 5.6] },
+  { key: 'stacks', own: true, name: '서가', text: '제1차부터 2009 개정 교육과정까지, 국내 교과서가 교육과정별로 빼곡히 꽂혀 있어요.', p: [6.5, 8.5, 15.5], t: [6.5, 0.6, 5.6] },
   { key: 'center', name: '교과서민원바로처리센터', text: '교과서에 관한 민원을 신속하게 처리해요. 궁금한 점은 ☎ 1566-8572로 문의하세요.', p: [10.8, 9, 3.6], t: [10.8, 0.5, -5.6] },
   { key: 'info', name: '교과서정보관', text: '교과서 정보를 모으고 관리하며, 필요한 분께 안내해 드려요.', p: [-1.0, 9, 2.6], t: [-1.0, 0.5, -6.6] },
   { key: 'stacks', name: '열람실', text: '누구나 편하게 앉아 교과서를 자유롭게 읽어볼 수 있는 공간이에요.', p: [-5.0, 7.2, 10.5], t: [-5.0, 0.4, 3.8] },
-  { key: 'stacks', own: true, name: '서고', text: '외국 교과서와 2015·2022 개정 교육과정 교과서를 모아 둔 서고예요.', p: [-13.2, 9, 14.5], t: [-13.2, 0.6, 5.6] },
+  { key: 'stacks', own: true, name: '서가', text: '외국 교과서와 2015·2022 개정 교육과정 교과서를 모아 둔 서고예요.', p: [-13.2, 9, 14.5], t: [-13.2, 0.6, 5.6] },
   { key: 'lab', name: '교과서연구소', text: '교과서를 연구하고 학술지 「교과서 연구」와 연구보고서를 펴내요.', p: [-17.6, 11, 19], t: [-24.6, 0.5, 6] },
 ];
 let tourI = -1, tourTimer = null, tourStart = 0;
@@ -5229,7 +5229,7 @@ function tourShow(i) {
   if (s.own) html += `<span class="tintro">${esc(s.text)}</span>`;
   else { html += `<span class="tintro">${esc(D.intro || s.text)}</span>`; if (D.lines && D.lines.length) html += '<ul>' + D.lines.map(l => `<li>${esc(l)}</li>`).join('') + '</ul>'; }
   if (D.link) html += `<a class="tlink" href="${D.link}" target="_blank" rel="noopener">🔗 ${s.key === 'stacks' ? '교과서 자료 검색하러 가기' : s.key === 'center' ? '교과서민원바로처리센터 바로가기' : '홈페이지에서 자세히 보기'}</a>`;
-  html += '<small class="thint">📌 걸어 다니다 부서 푯말을 누르면 언제든 다시 볼 수 있어요</small>';
+  html += '<small class="thint">📌 걸어 다니다 부서 안내판을 누르면 언제든 다시 볼 수 있어요</small>';
   $('tourText').innerHTML = html; $('tourText').scrollTop = 0; tourPaused = false;
   $('tourNext').textContent = i === TOUR.length - 1 ? '마치기 ✔' : '다음 ▶';
   tourStart = performance.now();

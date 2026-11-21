@@ -34,7 +34,7 @@
   #musicBtn { position: fixed; top: 62px; right: 14px; z-index: 5; border: none; padding: 7px 13px; border-radius: 999px; font: 13px sans-serif;
     background: rgba(255,255,255,0.92); color: #1f3a5f; box-shadow: 0 2px 10px rgba(0,0,0,0.12); cursor: pointer; }
   .lblHint { font-size: 11.5px; color: #9aa6b2; font-weight: normal; margin-left: 4px; }
-  #helpBtn { display: none; border: none; padding: 10px 16px; border-radius: 999px; font: bold 15px sans-serif; background: #e8742a; color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.15); cursor: pointer; }
+  #helpBtn { display: none; border: none; padding: 10px 16px; border-radius: 999px; font: bold 15px sans-serif; background: #fff; color: #1f3a5f; box-shadow: 0 2px 10px rgba(0,0,0,.15); cursor: pointer; }   /* 다른 버튼처럼 흰 동그라미 */
   body.walking #helpBtn { display: inline-block; }
   @media (max-width: 600px) { #helpBtn { padding: 9px 12px; } #helpBtn span { display: none; } #tipCard { bottom: 190px; } }
   #guide { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 20; display: none; width: min(88vw, 400px); padding: 20px 22px 16px; border-radius: 24px; background: rgba(255,255,255,.82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 16px 48px rgba(0,0,0,.25); color: #1f3a5f; font-family: sans-serif; }
@@ -5020,6 +5020,19 @@ function updateMap(t) {
   for (const r of remotes.values()) { mapG.fillStyle = '#3a8fd9'; mapG.beginPath(); mapG.arc(mx(r.ch.position.x), mz(r.ch.position.z), 6, 0, 7); mapG.fill(); }
   // ✨ 숨은 공간 입구: 이름 없이 반짝반짝만
   for (const [sx, sz, ph] of SECRET_SPARK) sparkle(mapG, mx(sx), mz(sz), 9, 0.55 + 0.45 * Math.sin(t * 4 + ph));
+  // 🎯 스탬프 투어: 부서 안내판 3곳 (찍은 곳은 ✅)
+  try { const wp = new THREE.Vector3();
+    for (const st of STAMPS) { const sg = window.DEPT_SIGN_G && DEPT_SIGN_G[st.id]; if (!sg) continue; sg.getWorldPosition(wp);
+      const sx = mx(wp.x), sz = mz(wp.z), got = !!stampGot[st.id];
+      mapG.fillStyle = got ? 'rgba(46,125,79,0.95)' : 'rgba(255,255,255,0.95)'; mapG.strokeStyle = got ? '#fff' : '#d9534f'; mapG.lineWidth = 3;
+      mapG.beginPath(); mapG.arc(sx, sz, got ? 12 : 12 + Math.sin(t * 4) * 1.5, 0, 7); mapG.fill(); mapG.stroke();
+      mapG.font = '15px sans-serif'; mapG.textAlign = 'center'; mapG.textBaseline = 'middle'; mapG.fillStyle = '#fff'; mapG.fillText(got ? '✔' : '🎯', sx, sz + 1); mapG.textBaseline = 'alphabetic'; }
+    // 지도 왼쪽 위: 스탬프 n/3 (작게)
+    const txt = `🎯 스탬프 ${stampCount()}/${STAMPS.length}`; mapG.font = 'bold 15px sans-serif'; mapG.textAlign = 'left';
+    const tw = mapG.measureText(txt).width; mapG.fillStyle = 'rgba(255,255,255,0.92)'; mapG.beginPath();
+    if (mapG.roundRect) mapG.roundRect(6, 6, tw + 16, 26, 13); else mapG.rect(6, 6, tw + 16, 26); mapG.fill();
+    mapG.fillStyle = '#1f3a5f'; mapG.fillText(txt, 14, 24);
+  } catch (e) {}
   const px = mx(player.position.x), pz = mz(player.position.z);
   mapG.fillStyle = 'rgba(232,112,42,0.25)'; mapG.beginPath(); mapG.arc(px, pz, 14 + Math.sin(t * 5) * 3, 0, 7); mapG.fill();
   mapG.fillStyle = '#e8702a'; mapG.strokeStyle = '#fff'; mapG.lineWidth = 3; mapG.beginPath(); mapG.arc(px, pz, 8, 0, 7); mapG.fill(); mapG.stroke();
@@ -5064,7 +5077,7 @@ for (const k in stampGot) if (!STAMPS.some(s => s.id === k)) delete stampGot[k];
 function stampCount() { return STAMPS.filter(s => stampGot[s.id]).length; }
 function stampRefresh() {
   $('stampN').textContent = `${stampCount()}/${STAMPS.length}`;
-  DEPT_INFO.stamps = { name: '🎯 재단 나들이 스탬프 투어', paras: [stampCount() === STAMPS.length ? '🏅 모든 스탬프를 모았어요! 완주 축하해요!' : '교과서연구소·교과서정보관·교과서민원바로처리센터를 돌아다니며 스탬프 3개를 모아 보세요. 부서 안내판을 누르거나 안내판 가까이 가면 찍혀요!'],
+  DEPT_INFO.stamps = { name: '🎯 재단 나들이 스탬프 투어', paras: [stampCount() === STAMPS.length ? '🏅 모든 스탬프를 모았어요! 완주 축하해요!' : '교과서연구소·교과서정보관·교과서민원바로처리센터를 돌아다니며 스탬프 3개를 모아 보세요. 부서 안내판을 누르거나 안내판 가까이 가면 찍혀요!', '🗺️ 지도에 🎯로 표시돼요. 찍은 곳은 ✔로 바뀌어요.'],
     lines: STAMPS.map(s => `${stampGot[s.id] ? '✅' : '⬜'} ${s.icon} ${s.name}`) };
 }
 stampRefresh();

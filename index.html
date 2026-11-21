@@ -2274,7 +2274,7 @@ const GAME = { x0: 0.4, x1: 13.6, z0: 22.1, z1: 31 };
     g.shadowColor = '#4fe0ff'; g.shadowBlur = 24; g.fillStyle = '#c9f6ff'; g.font = `bold 46px ${FONT}`; g.fillText(sub, w / 2, 250);
   });
   const big = new THREE.Mesh(new THREE.PlaneGeometry(4.4, 1.3), new THREE.MeshBasicMaterial({ map: signTex('Time · 고전 게임 한 판 🕹️'), toneMapped: false }));
-  big.position.set((GAME.x0 + GAME.x1) / 2, 2.35, GAME.z1 - 0.12); big.rotation.y = Math.PI; scene.add(big);
+  big.position.set(GAME.x1 - 0.13, 2.15, 26.6); big.rotation.y = -Math.PI / 2;   // 오른쪽 벽 (빈백 소파 위) scene.add(big);
   for (const [z, ry] of [[21.86, Math.PI], [22.14, 0]]) {
     const s = new THREE.Mesh(new THREE.PlaneGeometry(1.9, 0.56), new THREE.MeshBasicMaterial({ map: signTex('Time to Play'), toneMapped: false }));
     s.position.set(5.7, 2.62, z); s.rotation.y = ry; scene.add(s);
@@ -2293,6 +2293,58 @@ const ARCADE_GAMES = {
   mines:    { title: '💣 지뢰찾기', color: '#ced4da', hint: '눌러서 열기 · 🚩 버튼을 켜고 누르면 깃발 · 길게 눌러도 깃발' },
   omok:     { title: '⚫ 오목', color: '#e8c48a', hint: '내가 흑돌이에요. 다섯 개를 먼저 한 줄로 놓으면 이겨요' },
 };
+
+/* ---------- 게임기 화면: 늘 켜져서 미리보기가 움직여요 ---------- */
+const CAB_SCREENS = [];
+function cabScreen(id, c, w, h, t) {
+  const G = ARCADE_GAMES[id];
+  c.fillStyle = '#0b0b16'; c.fillRect(0, 0, w, h);
+  c.save(); c.beginPath(); c.rect(8, 8, w - 16, 196); c.clip();
+  const T = t * 1.0;
+  if (id === 'breakout') {
+    const cols = ['#ff6b6b', '#ffa94d', '#ffd43b', '#51cf66', '#4dabf7'];
+    for (let r = 0; r < 5; r++) for (let k = 0; k < 8; k++) if ((r * 8 + k + Math.floor(T)) % 11) { c.fillStyle = cols[r]; c.fillRect(14 + k * 37, 18 + r * 16, 33, 12); }
+    const bx = 160 + Math.sin(T * 1.7) * 120, by = 140 + Math.cos(T * 2.3) * 40;
+    c.fillStyle = '#fff'; c.beginPath(); c.arc(bx, by, 7, 0, 7); c.fill(); c.fillRect(bx - 40, 188, 80, 10);
+  } else if (id === 'blocks') {
+    const cols = ['#4dabf7', '#ff6b6b', '#51cf66', '#ffd43b', '#cc5de8'], s = 18, ox = 70;
+    c.strokeStyle = '#223'; for (let x = 0; x <= 10; x++) { c.beginPath(); c.moveTo(ox + x * s, 10); c.lineTo(ox + x * s, 202); c.stroke(); }
+    for (let y = 0; y < 4; y++) for (let x = 0; x < 10; x++) if ((x * 7 + y * 3) % 5) { c.fillStyle = cols[(x + y) % 5]; c.fillRect(ox + x * s + 1, 202 - (y + 1) * s + 1, s - 2, s - 2); }
+    const fy = 10 + ((T * 40) % 110); c.fillStyle = '#cc5de8'; for (const [dx, dy] of [[0, 0], [1, 0], [2, 0], [1, 1]]) c.fillRect(ox + (4 + dx) * s + 1, fy + dy * s + 1, s - 2, s - 2);
+  } else if (id === 'pong') {
+    c.setLineDash([8, 8]); c.strokeStyle = '#556'; c.beginPath(); c.moveTo(14, 106); c.lineTo(w - 14, 106); c.stroke(); c.setLineDash([]);
+    const bx = 160 + Math.sin(T * 1.9) * 120, by = 106 + Math.sin(T * 3.1) * 80;
+    c.fillStyle = '#51cf66'; c.fillRect(bx - 35, 18, 70, 8); c.fillStyle = '#fff'; c.fillRect(160 + Math.sin(T * 1.9 + 0.4) * 110 - 35, 186, 70, 8);
+    c.beginPath(); c.arc(bx, by, 7, 0, 7); c.fill();
+    c.fillStyle = '#51cf66'; c.font = `bold 28px ${FONT}`; c.textAlign = 'left'; c.fillText(String(Math.floor(T / 3) % 7), 20, 90); c.fillStyle = '#fff'; c.fillText(String(Math.floor(T / 4) % 7), 20, 140);
+  } else if (id === 'g2048') {
+    const vals = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048], tc = { 2: '#eee4da', 4: '#ede0c8', 8: '#f2b179', 16: '#f59563', 32: '#f67c5f', 64: '#f65e3b', 128: '#edcf72', 256: '#edcc61', 512: '#edc850', 1024: '#edc53f', 2048: '#edc22e' };
+    c.fillStyle = '#bbada0'; c.fillRect(70, 14, 184, 184);
+    for (let r = 0; r < 4; r++) for (let k = 0; k < 4; k++) { const v = vals[(r * 3 + k * 5 + Math.floor(T / 1.2)) % 12]; const x = 76 + k * 45, y = 20 + r * 45;
+      c.fillStyle = v ? tc[v] : '#cdc1b4'; c.fillRect(x, y, 40, 40); if (v) { c.fillStyle = v > 4 ? '#fff' : '#776e65'; c.font = `bold ${v > 512 ? 12 : v > 64 ? 15 : 18}px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(v, x + 20, y + 21); } }
+  } else if (id === 'mines') {
+    const n = Math.floor(T * 2) % 40;
+    for (let r = 0; r < 6; r++) for (let k = 0; k < 9; k++) { const x = 25 + k * 30, y = 16 + r * 30, idx = r * 9 + k, open = (idx * 17) % 54 < n + 8;
+      c.fillStyle = open ? '#dee2e6' : '#868e96'; c.fillRect(x, y, 28, 28);
+      if (open && (idx * 7) % 4 === 0) { c.fillStyle = ['#1c7ed6', '#2f9e44', '#e03131'][idx % 3]; c.font = `bold 18px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(1 + idx % 3, x + 14, y + 15); }
+      if (!open && idx % 13 === 5) { c.font = `16px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🚩', x + 14, y + 15); } }
+  } else if (id === 'omok') {
+    c.fillStyle = '#e8c48a'; c.fillRect(60, 12, 200, 190); c.strokeStyle = '#7a5a2a'; c.lineWidth = 1;
+    for (let k = 0; k < 9; k++) { c.beginPath(); c.moveTo(70 + k * 22.5, 22); c.lineTo(70 + k * 22.5, 192); c.stroke(); c.beginPath(); c.moveTo(70, 22 + k * 21.25); c.lineTo(250, 22 + k * 21.25); c.stroke(); }
+    const n = 3 + Math.floor(T * 1.5) % 14, pts = [[4, 4], [5, 4], [4, 5], [3, 3], [5, 5], [6, 6], [3, 5], [5, 3], [2, 2], [6, 2], [4, 3], [4, 6], [3, 4], [5, 6], [6, 5], [2, 6]];
+    for (let i = 0; i < n; i++) { const [x, y] = pts[i]; c.fillStyle = i % 2 ? '#fff' : '#111'; c.beginPath(); c.arc(70 + x * 22.5, 22 + y * 21.25, 9, 0, 7); c.fill(); }
+  }
+  c.restore();
+  c.fillStyle = G.color; c.fillRect(8, 206, w - 16, 42);
+  c.fillStyle = '#111'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = `900 24px ${FONT}`;
+  c.fillText(Math.floor(t * 1.5) % 2 ? `${G.title} · 👆 눌러서 시작` : G.title, w / 2, 228);
+}
+setInterval(() => {
+  try { if (player.position.z < 18 || player.position.x > 16) return; } catch (e) { return; }
+  const t = performance.now() / 1000;
+  for (const s of CAB_SCREENS) { const c = s.tex.image; cabScreen(s.id, c.getContext('2d'), c.width, c.height, t); s.tex.needsUpdate = true; }
+}, 160);
+
 function arcadeCab(id, x, z, ry) {
   const G = ARCADE_GAMES[id];
   const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; scene.add(g);
@@ -2302,17 +2354,18 @@ function arcadeCab(id, x, z, ry) {
   box(0.9, 0.1, 0.42, black, 0, 1.2, 0.2, g).rotation.x = -0.35;   // 조작판
   box(0.04, 0.1, 0.04, M(0x222222), -0.18, 1.29, 0.22, g); const ball = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 8), M(0xff3b3b)); ball.position.set(-0.18, 1.35, 0.22); g.add(ball);
   for (const [bx, c] of [[0.08, 0xffd43b], [0.22, 0x4dabf7]]) { const b = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.03, 12), M(c)); b.position.set(bx, 1.27, 0.2); b.rotation.x = -0.35; g.add(b); }
-  const scr = canvasTex(320, 256, (c, w, h) => {
-    c.fillStyle = '#0b0b16'; c.fillRect(0, 0, w, h);
-    c.fillStyle = G.color; c.textAlign = 'center'; c.font = `900 40px ${FONT}`; c.fillText(G.title.split(' ').slice(1).join(' '), w / 2, 110);
-    c.font = `64px ${FONT}`; c.fillText(G.title.split(' ')[0], w / 2, 190);
-    c.fillStyle = '#ffd43b'; c.font = `bold 24px ${FONT}`; c.fillText('👆 눌러서 시작', w / 2, 238);
-  });
+  const scr = canvasTex(320, 256, (c, w, h) => cabScreen(id, c, w, h, 0)); CAB_SCREENS.push({ id, tex: scr });
   const sm = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.56), new THREE.MeshBasicMaterial({ map: scr, toneMapped: false }));
   sm.position.set(0, 1.55, 0.08); g.add(sm); sm.userData.dept = 'arcade:' + id; signMeshes.push(sm);
   const mq = canvasTex(320, 80, (c, w, h) => { c.fillStyle = G.color; c.fillRect(0, 0, w, h); c.fillStyle = '#111'; c.textAlign = 'center'; c.font = `900 44px ${FONT}`; c.fillText(G.title, w / 2, 56); });
   const mm = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.22), new THREE.MeshBasicMaterial({ map: mq, toneMapped: false }));
   mm.position.set(0, 2.1, 0.08); g.add(mm); mm.userData.dept = 'arcade:' + id; signMeshes.push(mm);
+  // 게임기 위 벽에 붙은 네온 제목판
+  const nt = canvasTex(512, 160, (c, w, h) => { c.fillStyle = '#0b0818'; c.fillRect(0, 0, w, h); c.strokeStyle = G.color; c.lineWidth = 6; c.shadowColor = G.color; c.shadowBlur = 18; c.strokeRect(10, 10, w - 20, h - 20);
+    c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = `900 66px ${FONT}`; c.fillText(G.title, w / 2, h / 2 + 4); });
+  const np = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.34), new THREE.MeshBasicMaterial({ map: nt, toneMapped: false })); np.position.set(0, 2.62, -0.42); g.add(np); np.userData.dept = 'arcade:' + id; signMeshes.push(np);
+  // 화면 빛 번짐
+  const glow = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 0.8), new THREE.MeshBasicMaterial({ color: G.color, transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); glow.position.set(0, 1.55, 0.076); g.add(glow);
   box(0.9, 0.06, 0.5, body, 0, 2.24, -0.12, g);
   collide(g);
 }

@@ -178,7 +178,7 @@
   #fireBox button { margin: 0 !important; border: none; border-radius: 999px; padding: 7px 12px; background: rgba(255,226,176,.18); color: #ffe2b0; font: bold 13px sans-serif; cursor: pointer; } #fireBox b { font-size: 14px; } #fireTime { font: 800 40px/1.1 sans-serif; font-variant-numeric: tabular-nums; } #fireBox small { font-size: 12px; opacity: .8; }
   #lampPop { position: fixed; top: 62px; left: 50%; transform: translateX(-50%); z-index: 10; display: none; align-items: center; gap: 10px; padding: 10px 18px; border-radius: 999px;
     background: rgba(30,24,20,.7); backdrop-filter: blur(8px); color: #f6ecd8; font: 14px sans-serif; }
-  #lampPop.show { display: flex; }
+  #lampPop.show { display: flex; } #lampBtn, #lampPop { display: none !important; }   /* 스탠드 밝기 조절은 뺐어요 */
   #weatherPop { position: fixed; top: 62px; left: 50%; transform: translateX(-50%); max-width: 96vw; overflow-x: auto; z-index: 10; display: none; gap: 6px; padding: 8px; border-radius: 999px; background: rgba(30,24,20,.7); backdrop-filter: blur(8px); }
   #libSkyPop { position: fixed; top: 62px; left: 50%; transform: translateX(-50%); z-index: 10; display: none; gap: 6px; padding: 8px; border-radius: 999px; background: rgba(30,24,20,.7); backdrop-filter: blur(8px); }
   #libSkyPop.show { display: flex; } #libSkyPop button { border: none; border-radius: 999px; padding: 8px 12px; background: rgba(255,255,255,.12); color: #f6ecd8; font: bold 13px sans-serif; cursor: pointer; white-space: nowrap; }
@@ -2767,7 +2767,7 @@ const winLamps = [];
     let k = 0; for (const a of [-0.19, 0.19]) for (const b of [-0.18, 0.18]) place(iLeg, i * 4 + k++, x + a, 0.225, z + b, ry);
     chairs.push({ x, z: z + (ry ? -0.1 : 0.1), rot: ry, taken: false, study: true });
   });
-  scene.add(iStem, iShade, iBulb, iSeat, iBack, iLeg);
+  scene.add(iStem, iShade, iBulb, iSeat, iBack, iLeg); libLamp.inst = [iStem, iShade, iBulb]; libLamp.pos = lampPos;
   // 조용히 공부하는 사람들 + 이름표
   const READERS = [[2, '차분한 수정테이프', '공부 중', 52], [13, '말랑한 메모지', '공부 중', 548], [21, '반짝이는 클립', '공부 중', 131], [32, '성실한 형광펜', '공부 중', 87], [41, '포근한 책갈피', '공부 중', 312], [50, '단단한 지우개', '공부 중', 64], [61, '느긋한 연필', '공부 중', 205], [69, '씩씩한 포스트잇', '공부 중', 96]];
   const shirts = [0xd9cbe6, 0x8aa7c9, 0xf2d4cf, 0x3a4255, 0xbfd8d2, 0xe9d7c0, 0xc9dcb0, 0xf3efe6];
@@ -2953,7 +2953,7 @@ function updateWeather(t, dt) {
 }
 
 /* ================= 🪔 스탠드 밝기 · 📝 할 일 목록 (저장됨) ================= */
-let lampLevel = (() => { try { const v = localStorage.getItem('ktrfLamp'); return v === null ? 70 : +v; } catch (e) { return 70; } })();
+let lampLevel = 70;   // 밝기 조절 기능은 없애고 기본 밝기로 고정
 function applyLamp() {
   const k = lampLevel / 100;
   if (libLamp.shade) libLamp.shade.emissiveIntensity = 0.1 + k * 1.1;
@@ -3596,7 +3596,7 @@ const deskProps = new THREE.Group(); deskProps.visible = false; scene.add(deskPr
   for (const [k, s] of [['L', 1], ['R', -1]]) {
     const c = document.createElement('canvas'); c.width = 1024; c.height = 1440; bookPages[k] = c;   // 2배 해상도
     const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = 8; bookPages[k + 'tx'] = tx;
-    const pl = new THREE.Mesh(new THREE.PlaneGeometry(0.29, 0.41), new THREE.MeshBasicMaterial({ map: tx, toneMapped: false })); pl.rotation.set(-Math.PI / 2, 0, Math.PI); pl.position.set(s * 0.158, 0.02, 0); bookG.add(pl);
+    const pl = new THREE.Mesh(new THREE.PlaneGeometry(0.29, 0.41), new THREE.MeshBasicMaterial({ map: tx, toneMapped: false })); pl.rotation.set(-Math.PI / 2, 0, Math.PI); pl.position.set(s * 0.158, 0.035, 0); bookG.add(pl);   // 종이보다 살짝 위 (글씨가 가려지지 않게)
   }
   const nb = box(0.17, 0.012, 0.23, M(0x2f5a48), -0.5, 0.006, 0.06, deskProps); nb.rotation.y = 0.25;   // 노트
   const pen = box(0.012, 0.012, 0.16, M(0xe8b84a), 0.44, 0.012, 0.12, deskProps); pen.rotation.y = -0.6;  // 연필
@@ -3623,6 +3623,17 @@ function drawBookPages() {
   [`📅 연속 ${streak()}일째 출석`, `⏱️ 오늘 공부 ${fmtMin(studyToday())}`, `✅ 할 일 ${done} / ${todos.length}`, '', '오늘도 한 걸음씩 📖', '- 비밀의 도서관에서'].forEach((s, i) => g.fillText(s, 44, 160 + i * 52));
   bookPages.Rtx.needsUpdate = true;
 }
+function hideMyLamp(x, z) {   // x 없이 부르면 다시 보이게
+  if (!libLamp.inst) return;
+  const m4 = new THREE.Matrix4();
+  if (hideMyLamp.i != null) { for (const im of libLamp.inst) { im.setMatrixAt(hideMyLamp.i, hideMyLamp.saved[libLamp.inst.indexOf(im)]); im.instanceMatrix.needsUpdate = true; } hideMyLamp.i = null; }
+  if (x == null) return;
+  let best = -1, bd = 1.0;
+  libLamp.pos.forEach(([lx, lz], i) => { const d = Math.hypot(lx - x, lz - z); if (d < bd) { bd = d; best = i; } });
+  if (best < 0) return;
+  hideMyLamp.i = best; hideMyLamp.saved = libLamp.inst.map(im => { const m = new THREE.Matrix4(); im.getMatrixAt(best, m); return m; });
+  m4.makeScale(0, 0, 0); for (const im of libLamp.inst) { im.setMatrixAt(best, m4); im.instanceMatrix.needsUpdate = true; }
+}
 function enterDeskView(ch, fire) {
   const fx = Math.sin(ch.rot), fz = Math.cos(ch.rot);
   deskView = { fov: camera.fov, cam: camera.position.clone(), tgt: controls.target.clone(), fire: !!fire };
@@ -3632,6 +3643,7 @@ function enterDeskView(ch, fire) {
     document.body.classList.add('deskView', 'fireView'); return;
   }
   deskProps.position.set(ch.x + fx * 0.58, 0.79, ch.z + fz * 0.58); deskProps.rotation.y = ch.rot; deskProps.visible = true; drawBookPages();
+  hideMyLamp(deskProps.position.x, deskProps.position.z);   // 내 자리 스탠드는 치워서 노트가 가려지지 않게
   player.visible = false; controls.enabled = false;
   camera.fov = 58; camera.updateProjectionMatrix();
   camera.position.set(ch.x - fx * 0.05, 1.22, ch.z - fz * 0.05); controls.target.set(ch.x + fx * 0.62, 0.97, ch.z + fz * 0.62);   // 독서대 위 책을 정면으로 camera.lookAt(controls.target);
@@ -3642,7 +3654,7 @@ function exitDeskView() {
   camera.fov = deskView.fov; camera.updateProjectionMatrix();
   controls.target.set(player.position.x, 1.1, player.position.z);
   camera.position.set(player.position.x - Math.sin(player.rotation.y) * 4, 3.6, player.position.z - Math.cos(player.rotation.y) * 4);
-  controls.enabled = true; player.visible = !firstPerson; deskProps.visible = false; deskView = null;
+  controls.enabled = true; player.visible = !firstPerson; deskProps.visible = false; deskView = null; hideMyLamp();
   document.body.classList.remove('deskView', 'fireView'); renderer.toneMappingExposure = 1.05;
   if (firstPerson) setView(true);
 }

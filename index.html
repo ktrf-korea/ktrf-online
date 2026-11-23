@@ -228,7 +228,7 @@
   #arBtns { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; } #arBtns button { border: none; min-width: 52px; height: 46px; padding: 0 14px; border-radius: 12px; background: rgba(255,255,255,.16); color: #fff; font: bold 18px sans-serif; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
   #arBtns button.on { background: #ffd43b; color: #222; } #arHint { margin: 0; font-size: 12px; opacity: .7; text-align: center; }
   body.arcadeOpen #joy, body.arcadeOpen #actions, body.arcadeOpen #homeBtn { display: none !important; }
-  #parkHud { position: fixed; top: auto; bottom: 126px; left: 50%; transform: translateX(-50%); z-index: 8; display: none; gap: 6px; flex-wrap: nowrap; }
+  #parkHud { position: fixed; top: auto; bottom: 126px; left: 50%; transform: translateX(-50%); z-index: 8; display: none; gap: 6px; flex-wrap: wrap; justify-content: center; width: max-content; max-width: 96vw; }
   #parkHud.show { display: flex; } body.running #parkHud { display: none; } body.menuOpen #parkHud, body.chatOpen #parkHud { display: none !important; }
   #parkHud button { border: 0; border-radius: 18px; padding: 7px 11px; font-size: 13px; font-weight: 700; background: rgba(255,255,255,.92); color: #1f3a5f; box-shadow: 0 2px 10px rgba(0,0,0,.12); cursor: pointer; white-space: nowrap; }
   #parkHud button.on { background: #1f3a5f; color: #fff; }
@@ -447,7 +447,7 @@
 <div id="arcade"><div class="arBox"><div class="arTop"><b id="arTitle"></b><span>점수 <em id="arScore">0</em> · 최고 <em id="arBest">0</em></span><button id="arClose">✕</button></div>
   <div class="arStage"><canvas id="arCv" width="360" height="480"></canvas><div id="arMsg"></div></div>
   <div id="arBtns"></div><p id="arHint"></p></div></div>
-<div id="parkHud"><button data-sky="clouds">☁️ 하늘 보기</button><button data-sky="stars">🌌 별 보기</button><button data-w="clear" class="on">☀️ 맑음</button><button data-w="rain">🌧️ 비</button><button data-w="snow">❄️ 눈</button></div><button id="runBtn">🏃 달리기</button><div id="runHud"></div>
+<div id="parkHud"><button data-sky="clouds">☁️ 하늘 보기</button><button data-sky="stars">🌌 별 보기</button><button data-w="clear" class="on">☀️ 맑음</button><button data-w="rain">🌧️ 비</button><button data-w="snow">❄️ 눈</button><button data-pic="spread">🧺 돗자리 펴기</button><button data-pic="lie" style="display:none">😴 눕기</button><button data-pic="fold" style="display:none">🧺 접기</button></div><button id="runBtn">🏃 달리기</button><div id="runHud"></div>
 <div id="quizView"><div class="box"><div id="quizStep"></div><p id="quizQ"></p>
   <div id="quizBtns"><button id="quizO">⭕ 맞아요</button><button id="quizX">❌ 아니에요</button></div>
   <div id="quizRes"></div><button id="quizNext">다음 문제 ▶</button><button id="quizClose">닫기</button></div></div>
@@ -2512,6 +2512,60 @@ function updateBirds(t, dt) {
 setTimeout(() => {
   $('parkHud').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.sky) { if (RUN.on) stopRun(true); enterSky(b.dataset.sky); } else if (b.dataset.w) setParkWeather(b.dataset.w); });
+}, 0);
+
+/* ---------- 🧺 보라매공원 돗자리: 펴고 앉기 · 눕기 ---------- */
+const PIC = { mat: null, seat: null, lie: false };
+function picnicSpread() {
+  const p = player.position;
+  if (!(p.z > PARK.z0 + 0.5 && p.x > PARK.x0 + 0.5 && p.x < PARK.x1 - 0.5)) { toast('🧺 돗자리는 보라매공원 잔디밭에서 펼 수 있어요'); return; }
+  if (sitting) standUp();
+  picnicFold(true);
+  const ry = player.rotation.y, g = new THREE.Group(); g.position.set(p.x, 0, p.z); g.rotation.y = ry; scene.add(g);
+  const tx = canvasTex(256, 192, (c, w, h) => { c.fillStyle = '#fff6ee'; c.fillRect(0, 0, w, h); c.fillStyle = 'rgba(214,51,71,.55)';
+    for (let x = 0; x < w; x += 32) c.fillRect(x, 0, 16, h); for (let y = 0; y < h; y += 32) c.fillRect(0, y, w, 16); c.strokeStyle = '#c92a3a'; c.lineWidth = 8; c.strokeRect(4, 4, w - 8, h - 8); });
+  const mat = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 2.2), new THREE.MeshStandardMaterial({ map: tx, roughness: 0.95 })); mat.rotation.x = -Math.PI / 2; mat.position.y = 0.03; mat.receiveShadow = true; g.add(mat);
+  // 소풍 바구니 · 보온병 · 과일 접시
+  box(0.42, 0.24, 0.3, M(0xb07a43, { roughness: 0.8 }), 0.5, 0.15, -0.75, g); box(0.44, 0.04, 0.32, M(0x8a5a2e), 0.5, 0.29, -0.75, g);
+  const th = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.3, 12), M(0x4dabf7, { roughness: 0.4 })); th.position.set(0.55, 0.18, -0.35); g.add(th);
+  const pl = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.15, 0.03, 20), M(0xffffff)); pl.position.set(-0.45, 0.05, -0.7); g.add(pl);
+  for (const [x, z, c] of [[-0.5, -0.72, 0xe03131], [-0.4, -0.66, 0xffa94d], [-0.45, -0.78, 0x82c91e]]) { const f = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 8), M(c)); f.position.set(x, 0.09, z); g.add(f); }
+  PIC.mat = g; PIC.seat = { x: p.x, z: p.z, rot: ry, taken: false, floor: true, picnic: true }; chairs.push(PIC.seat);
+  sitDown(); toast('🧺 돗자리를 폈어요! 😴 눕기를 누르면 누워서 하늘을 볼 수 있어요'); parkPicUI();
+}
+function picnicFold(silent) {
+  if (!PIC.mat) return;
+  if (sitting === PIC.seat) standUp();
+  scene.remove(PIC.mat); const i = chairs.indexOf(PIC.seat); if (i >= 0) chairs.splice(i, 1);
+  PIC.mat = null; PIC.seat = null; PIC.lie = false;
+  if (!silent) toast('🧺 돗자리를 접었어요'); parkPicUI();
+}
+function picnicLie(on) {
+  if (!PIC.seat || sitting !== PIC.seat) { if (PIC.seat && !sitting) { sitDown(); } else return; }
+  PIC.lie = on; const s = PIC.seat, u = player.userData;
+  if (on) {
+    player.rotation.order = 'YXZ'; player.rotation.set(-Math.PI / 2, s.rot + Math.PI, 0);   // 하늘을 보고 반듯하게
+    player.position.set(s.x - Math.sin(s.rot) * 0.75, 0.17, s.z - Math.cos(s.rot) * 0.75);
+    u.legs.forEach(l => l.rotation.x = 0); u.arms.forEach(a => { a.rotation.x = 0; a.rotation.z = 0; });
+    toast('😴 돗자리에 누웠어요 · 🌌 별 보기나 ☁️ 하늘 보기를 눌러 보세요');
+  } else {
+    player.rotation.order = 'XYZ'; player.rotation.set(0, s.rot, 0); player.position.set(s.x, -0.3, s.z);
+    u.legs.forEach(l => l.rotation.x = -Math.PI / 2);
+  }
+  parkPicUI();
+}
+function parkPicUI() {
+  const h = $('parkHud'); if (!h) return;
+  const has = !!PIC.mat, on = has && sitting === PIC.seat;
+  h.querySelector('[data-pic="spread"]').style.display = has ? 'none' : '';
+  h.querySelector('[data-pic="lie"]').style.display = on ? '' : 'none';
+  h.querySelector('[data-pic="lie"]').textContent = PIC.lie ? '🧘 앉기' : '😴 눕기';
+  h.querySelector('[data-pic="fold"]').style.display = has ? '' : 'none';
+}
+setTimeout(() => {
+  $('parkHud').addEventListener('click', e => { const b = e.target.closest('button[data-pic]'); if (!b) return;
+    if (b.dataset.pic === 'spread') picnicSpread(); else if (b.dataset.pic === 'fold') picnicFold(); else if (b.dataset.pic === 'lie') { if (PIC.seat && sitting !== PIC.seat) { sitDown(); parkPicUI(); return; } picnicLie(!PIC.lie); } });
+  parkPicUI();
 }, 0);
 
 /* ---------- 🏃 트랙 달리기: 트랙 근처에서 [달리기]를 누르면 트랙만 따라 달려요 ---------- */
@@ -5747,7 +5801,7 @@ function sitDown() {
   player.position.set(best.x, best.floor ? -0.3 : 0, best.z); player.rotation.y = best.rot;
   player.userData.legs.forEach(p => p.rotation.x = -Math.PI / 2);
   player.userData.arms.forEach(p => p.rotation.x = 0);
-  $('sitBtn').textContent = '🧍 일어나기';
+  $('sitBtn').textContent = '🧍 일어나기'; try { if (best.picnic) setTimeout(parkPicUI, 0); } catch (e) {}
   if (best.fire) enterDeskView(best, true);
   if (inSecretRoom()) { startStudy(); if (best.study) enterDeskView(best); toast(`⏱️ ${studyCfg.focus}분 집중 타이머 시작! 🪔 밝기로 스탠드 불빛을 바꿔 보세요`); }
   if (myPet) {
@@ -5766,7 +5820,7 @@ function standUp() {
   if (skyView) exitSky();
   sitting.taken = false; sitting = null; stopStudy(); exitDeskView();
   if (myPet && myPet.seat) { myPet.seat.taken = false; myPet.seat = null; }
-  player.position.copy(preSit);
+  player.position.copy(preSit); if (player.rotation.order !== 'XYZ' || player.rotation.x) { player.rotation.order = 'XYZ'; player.rotation.x = 0; player.rotation.z = 0; } try { PIC.lie = false; setTimeout(parkPicUI, 0); } catch (e) {}
   player.userData.legs.forEach(p => p.rotation.x = 0);
   $('sitBtn').textContent = '🪑 앉기';
 }

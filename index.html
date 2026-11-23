@@ -4125,7 +4125,7 @@ const galWalls = { s: [], n: [], w: [], e: [] };
     clad('s', GCOR.x0, GAL.z1, GCOR.x1, GAL.z1, 0, 1, 3.4, H, false);
     clad('w', GAL.x0, GAL.z1, GAL.x0, GAL.z0, -1, 0); clad('e', GAL.x1, GAL.z0, GAL.x1, GAL.z1, 1, 0); clad('n', GAL.x1, GAL.z0, GAL.x0, GAL.z0, 0, -1);
     // 간판: 복도 지붕 위 큰 청동 글씨
-    const st = canvasTex(1024, 200, (c, w, h) => { c.clearRect(0, 0, w, h); c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#6b4f30'; c.font = `900 92px ${FONT}`; c.fillText('GALLERY F', w / 2, 78); c.font = `600 44px ${FONT}`; c.fillStyle = '#5a4630'; c.fillText('우리들의 갤러리', w / 2, 158); });
+    const st = canvasTex(1024, 200, (c, w, h) => { c.clearRect(0, 0, w, h); c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#6b4f30'; c.font = `900 92px ${FONT}`; c.fillText('GALLERY F', w / 2, 78); c.font = `600 44px ${FONT}`; c.fillStyle = '#5a4630'; c.fillText('우리들의 갤러리 F', w / 2, 158); });
     const sg = new THREE.Mesh(new THREE.PlaneGeometry(6.4, 1.25), new THREE.MeshStandardMaterial({ map: st, transparent: true, metalness: 0.4, roughness: 0.4 }));
     sg.position.set((GCOR.x0 + GCOR.x1) / 2, 4.75, GAL.z1 + 0.22); galG.add(sg); galWalls.s.push(sg);
   }
@@ -4168,7 +4168,7 @@ const galWalls = { s: [], n: [], w: [], e: [] };
       for (let k = 0; k < 3; k++) { const lf = new THREE.Mesh(new THREE.SphereGeometry(0.32 - k * 0.06, 12, 10), M([0x3f7a4a, 0x4f8a55, 0x356a40][k])); lf.position.set(px + (k - 1) * 0.08, 0.85 + k * 0.28, pz); galG.add(lf); } }
     // 미술관 입구 위 간판
     const st = canvasTex(1024, 200, (c, w, h) => { c.fillStyle = '#1b1b1d'; c.fillRect(0, 0, w, h); c.fillStyle = '#f6f6f3'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = `300 34px ${FONT}`; c.fillText('F U N  ·  G A L L E R Y', w / 2, 58); c.font = `900 72px ${FONT}`; c.fillText('우리들의 갤러리 F', w / 2, 132); });
-    const sp = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 0.62), new THREE.MeshBasicMaterial({ map: st, toneMapped: false })); sp.position.set(cx, 4.2, GAL.z1 + 0.17); galG.add(sp);
+    const sp = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 0.62), new THREE.MeshBasicMaterial({ map: st, toneMapped: false })); sp.position.set(cx, 4.2, GAL.z1 + 0.17); /* 청동 간판과 겹쳐서 숨김 */
   }
   // 입구 제목 벽: 공모전 수상작 목록 배너
   const tw = new THREE.Group(); tw.position.set(9.2, 0, -25); galG.add(tw);

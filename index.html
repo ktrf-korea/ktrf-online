@@ -1083,6 +1083,32 @@ box(3.5, 0.06, 0.9, M(0xffffff, { roughness: 0.3 }), -8.25, 1.08, 7.6);
 box(3.0, 0.05, 0.4, M(0xffffff, { roughness: 0.3 }), -8.25, 0.78, 7.05);
 chair(-8.25, 6.65, 0, 0x2a2d33, true);
 plant(-10.4, 7.6);
+/* 🎉 안내데스크 위 이벤트 접수 아크릴 스탠드 (누르면 참여 폼 바로 열기) — 11.30까지 */
+const EVT_FORM = 'https://naver.me/xEX81TLT';
+if (Date.now() < new Date('2026-12-01T00:00:00+09:00').getTime()) {
+  const g = new THREE.Group(); g.position.set(-7.15, 1.11, 7.72); g.rotation.y = -0.25; scene.add(g);
+  const acr = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.35, roughness: 0.05, metalness: 0.1 });
+  box(0.5, 0.03, 0.2, acr, 0, 0.015, -0.03, g);
+  const tx = canvasTex(512, 720, (c, w, h) => {
+    const gr = c.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#2b42a0'); gr.addColorStop(1, '#172a6b'); c.fillStyle = gr; c.fillRect(0, 0, w, h);
+    c.strokeStyle = 'rgba(232,194,122,.35)'; c.lineWidth = 3; for (const r of [70, 120, 170]) { c.beginPath(); c.arc(w - 30, 40, r, 0, Math.PI * 2); c.stroke(); }
+    c.textAlign = 'center';
+    c.fillStyle = '#E8C27A'; c.beginPath(); c.roundRect(w / 2 - 100, 46, 200, 56, 28); c.fill();
+    c.fillStyle = '#172a6b'; c.font = `900 32px ${FONT}`; c.fillText('🎉 EVENT', w / 2, 86);
+    c.fillStyle = '#fff'; c.font = `900 66px ${FONT}`; c.fillText('숨은 포스터를', w / 2, 200);
+    c.fillStyle = '#F2D27A'; c.fillText('찾아라!', w / 2, 278);
+    c.fillStyle = '#dfe6ff'; c.font = `500 25px ${FONT}`; c.fillText('「성과 포럼 및 학술대회」 포스터 앞에서', w / 2, 340); c.fillText('📷 인증샷 찍고 접수해 주세요', w / 2, 376);
+    c.fillStyle = '#fff'; c.beginPath(); c.roundRect(40, 412, w - 80, 120, 22); c.fill();
+    c.fillStyle = '#172a6b'; c.font = `900 34px ${FONT}`; c.fillText('🍦 배스킨라빈스 25명', w / 2, 462);
+    c.fillStyle = '#4b5a8a'; c.font = `600 25px ${FONT}`; c.fillText('지금부터 ~ 11.30(월) 자정까지', w / 2, 505);
+    c.fillStyle = '#E8702A'; c.beginPath(); c.roundRect(40, 566, w - 80, 104, 52); c.fill();
+    c.fillStyle = '#fff'; c.font = `900 42px ${FONT}`; c.fillText('📝 접수하기  👆', w / 2, 634);
+  });
+  const sp = new THREE.Mesh(new THREE.PlaneGeometry(0.46, 0.647), new THREE.MeshBasicMaterial({ map: tx, toneMapped: false }));
+  sp.position.set(0, 0.36, 0); sp.rotation.x = -0.08; g.add(sp);
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(0.48, 0.667), acr); back.position.set(0, 0.36, -0.006); back.rotation.x = -0.08; g.add(back);
+  sp.userData.dept = 'eventForm'; eventHits.push(sp);
+}
 // 안내판 스탠드
 const standM = M(0xc8ccd0, { metalness: 0.8, roughness: 0.3 });
 // 로고벽 뒤 컴퓨터 자리
@@ -2286,6 +2312,7 @@ renderer.domElement.addEventListener('pointerup', e => {
   const key = pickSign(e);
   if (key === 'tower' && inSecretRoom()) { openTower(); return; }
   if (key === 'quiz') { quizOpen(); return; }
+  if (key === 'eventForm') { window.open(EVT_FORM, '_blank', 'noopener'); toast('📝 이벤트 접수 폼을 열었어요'); return; }
   if (key === 'selfie') { selfie(); return; }
   if (key === 'secret') { toggleSecretDoor(); return; }
   if (key && key.startsWith('arcade:')) { openArcade(key.slice(7)); return; }

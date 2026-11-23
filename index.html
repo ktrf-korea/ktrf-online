@@ -273,10 +273,10 @@
   #quizClose { margin-top: 8px; border: none; background: none; color: #7a8794; font: 13px sans-serif; cursor: pointer; }
   #lookView { position: fixed; left: 0; right: 0; bottom: 0; z-index: 28; display: none; justify-content: center; padding: 12px; pointer-events: none; }
   #lookView.show { display: flex; }
-  #lookView .box { pointer-events: auto; background: rgba(255,255,255,0.96); border-radius: 18px; padding: 14px 16px; box-shadow: 0 6px 24px rgba(0,0,0,0.2); width: min(94vw, 420px); font-family: sans-serif; color: #1f3a5f; }
-  #lookView .lrow { display: flex; align-items: center; gap: 10px; margin: 10px 0; } #lookView .lrow span { width: 64px; font-size: 13px; color: #4b5a68; flex: none; }
+  #lookView .box { pointer-events: auto; max-height: 72vh; overflow-y: auto; background: rgba(255,255,255,0.96); border-radius: 18px; padding: 14px 16px; box-shadow: 0 6px 24px rgba(0,0,0,0.2); width: min(94vw, 420px); font-family: sans-serif; color: #1f3a5f; }
+  #lookView .lrow { display: flex; align-items: center; gap: 10px; margin: 8px 0; } #lookView .lrow span { width: 64px; font-size: 13px; color: #4b5a68; flex: none; }
   #lookView .lrow div { display: flex; flex-wrap: wrap; gap: 6px; }
-  #lookView .sw { width: 28px; height: 28px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 1px #c9d1da; cursor: pointer; padding: 0; }
+  #lookView .sw { width: 28px; height: 28px; font-size: 13px; line-height: 1; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 1px #c9d1da; cursor: pointer; padding: 0; }
   #lookView .sw.on { box-shadow: 0 0 0 3px #e8702a; }
   #lookView .st { border: 1px solid #c9d1da; background: #fff; border-radius: 999px; padding: 6px 12px; font-size: 13px; cursor: pointer; color: #1f3a5f; }
   #lookView .st.on { background: #1f3a5f; color: #fff; border-color: #1f3a5f; }
@@ -455,8 +455,11 @@
 <div id="lookView"><div class="box"><b>👕 내 캐릭터 꾸미기</b>
   <div class="lrow"><span>머리 모양</span><div id="lkStyle"></div></div>
   <div class="lrow"><span>머리 색</span><div id="lkHair"></div></div>
-  <div class="lrow"><span>옷 색</span><div id="lkShirt"></div></div>
-  <div class="lrow"><span>바지 색</span><div id="lkPants"></div></div>
+  <div class="lrow"><span>윗옷</span><div id="lkSleeve"></div></div>
+  <div class="lrow"><span>윗옷 색</span><div id="lkShirt"></div></div>
+  <div class="lrow"><span>아래옷</span><div id="lkBottom"></div></div>
+  <div class="lrow"><span>아래옷 색</span><div id="lkPants"></div></div>
+  <div class="lrow"><span>🎒 백팩</span><div id="lkBag"></div></div>
   <button id="lookDone">완료</button></div></div>
 <div id="actions">
   <button id="talkBtn">💬 말하기</button>
@@ -1825,23 +1828,42 @@ const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ color: 0xfff1c
 scene.add(dust);
 
 /* ================= 캐릭터 ================= */
-function makeChar({ shirt = 0x6c8ebf, hair = 0x2b2220, pants = 0x3b4252, skin = 0xf6d7c3, longHair = false, male = false, tie = 0 } = {}) {
+function makeChar({ shirt = 0x6c8ebf, hair = 0x2b2220, pants = 0x3b4252, skin = 0xf6d7c3, longHair = false, male = false, tie = 0, bottom = 'lp', sleeve = 'l', bag = 0 } = {}) {
   const g = new THREE.Group();
   const mS = M(skin, { roughness: 0.6 }), mSh = M(shirt), mP = M(pants), mH = M(hair, { roughness: 0.5 });
   const legs = [], arms = [];
   for (const s of [-1, 1]) {
     const p = new THREE.Group(); p.position.set(0.1 * s, 0.55, 0);
-    const leg = new THREE.Mesh(new THREE.CapsuleGeometry(0.085, 0.32, 4, 8), mP);
-    leg.position.y = -0.27; leg.castShadow = true; p.add(leg); g.add(p); legs.push(p);
+    const bare = bottom !== 'lp';
+    const leg = new THREE.Mesh(new THREE.CapsuleGeometry(bare ? 0.07 : 0.085, 0.32, 4, 8), bare ? mS : mP);
+    leg.position.y = -0.27; leg.castShadow = true; p.add(leg);
+    if (bottom === 'sp') { const sh = new THREE.Mesh(new THREE.CylinderGeometry(0.105, 0.1, 0.2, 12), mP); sh.position.y = -0.08; sh.castShadow = true; p.add(sh); }
+    const shoe = new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 8), M(0x2b2b2e)); shoe.scale.set(1, 0.6, 1.5); shoe.position.set(0, -0.5, 0.03); p.add(shoe);
+    g.add(p); legs.push(p);
+  }
+  if (bottom === 'ss' || bottom === 'ls') {   // 치마: 몸에 붙어서 다리는 안에서 움직여요
+    const long = bottom === 'ls', h = long ? 0.46 : 0.24;
+    const sk = new THREE.Mesh(new THREE.CylinderGeometry(0.2, long ? 0.31 : 0.27, h, 20, 1, true), M(pants, { side: THREE.DoubleSide }));
+    sk.position.y = 0.7 - h / 2; sk.scale.z = 0.9; sk.castShadow = true; g.add(sk);
   }
   const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 0.28, 4, 12), mSh);
   body.position.y = 0.82; body.scale.set(1.15, 1, 0.9); body.castShadow = true; g.add(body);
   for (const s of [-1, 1]) {
     const p = new THREE.Group(); p.position.set(0.27 * s, 1.0, 0);
-    const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.06, 0.28, 4, 8), mSh);
+    const arm = new THREE.Mesh(new THREE.CapsuleGeometry(sleeve === 's' ? 0.052 : 0.06, 0.28, 4, 8), sleeve === 's' ? mS : mSh);
     arm.position.y = -0.18; arm.castShadow = true; p.add(arm);
+    if (sleeve === 's') { const sl = new THREE.Mesh(new THREE.CylinderGeometry(0.078, 0.074, 0.15, 12), mSh); sl.position.y = -0.04; sl.castShadow = true; p.add(sl); }
     const hand = new THREE.Mesh(new THREE.SphereGeometry(0.065, 10, 8), mS); hand.position.y = -0.38; p.add(hand);
     p.rotation.z = 0.12 * s; g.add(p); arms.push(p);
+  }
+  if (bag) {   // 🎒 백팩
+    const mB = M(bag, { roughness: 0.7 }), mD = M(((((bag >> 16) & 255) * 0.7) << 16) | ((((bag >> 8) & 255) * 0.7) << 8) | (((bag & 255) * 0.7) | 0), { roughness: 0.7 });
+    const pk = new THREE.Mesh(new THREE.CapsuleGeometry(0.15, 0.16, 4, 10), mB); pk.position.set(0, 0.86, -0.29); pk.scale.set(1.2, 1, 0.62); pk.castShadow = true; g.add(pk);
+    const pc = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.14, 0.06), mD); pc.position.set(0, 0.76, -0.385); g.add(pc);
+    for (const s of [-1, 1]) {
+      const st = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.34, 0.02), mD); st.position.set(0.12 * s, 0.9, 0.175); st.rotation.x = -0.12; g.add(st);
+      const tp = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.02, 0.42), mD); tp.position.set(0.12 * s, 1.08, -0.06); g.add(tp);
+    }
   }
   const head = new THREE.Group(); head.position.y = 1.36; g.add(head);
   const face = new THREE.Mesh(new THREE.SphereGeometry(0.27, 24, 18), mS); face.castShadow = true; head.add(face);
@@ -1860,13 +1882,14 @@ function makeChar({ shirt = 0x6c8ebf, hair = 0x2b2220, pants = 0x3b4252, skin = 
     const back = new THREE.Mesh(new THREE.CapsuleGeometry(0.21, 0.22, 4, 12), mH);
     back.position.set(0, -0.15, -0.1); back.scale.set(1.1, 1, 0.8); head.add(back);
   }
+  const eyes = [];
   for (const s of [-1, 1]) {
     const eye = new THREE.Mesh(new THREE.SphereGeometry(0.032, 8, 6), M(0x1b1b1b));
-    eye.position.set(0.09 * s, 0.0, 0.25); head.add(eye);
+    eye.position.set(0.09 * s, 0.0, 0.25); head.add(eye); eyes.push(eye);
     const cheek = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 6), new THREE.MeshBasicMaterial({ color: 0xf4a3a3, transparent: true, opacity: 0.55 }));
     cheek.position.set(0.15 * s, -0.07, 0.215); cheek.scale.z = 0.3; if (!male) head.add(cheek);
   }
-  g.userData = { legs, arms, head, phase: rand(0, 6) };
+  g.userData = { legs, arms, head, eyes, phase: rand(0, 6) };
   scene.add(g);
   return g;
 }
@@ -2547,12 +2570,39 @@ function picnicLie(on) {
     player.rotation.order = 'YXZ'; player.rotation.set(-Math.PI / 2, s.rot + Math.PI, 0);   // 하늘을 보고 반듯하게
     player.position.set(s.x - Math.sin(s.rot) * 0.75, 0.17, s.z - Math.cos(s.rot) * 0.75);
     u.legs.forEach(l => l.rotation.x = 0); u.arms.forEach(a => { a.rotation.x = 0; a.rotation.z = 0; });
+    PIC.lieAt = performance.now(); setSleep(false);
     toast('😴 돗자리에 누웠어요 · 🌌 별 보기나 ☁️ 하늘 보기를 눌러 보세요');
   } else {
+    setSleep(false);
     player.rotation.order = 'XYZ'; player.rotation.set(0, s.rot, 0); player.position.set(s.x, -0.3, s.z);
     u.legs.forEach(l => l.rotation.x = -Math.PI / 2);
   }
   parkPicUI();
+}
+/* 😪 누워서 30초 지나면 눈 감고 잠들기 */
+let zzz = null;
+function setSleep(on, quiet) {
+  PIC.sleep = on;
+  (player.userData.eyes || []).forEach(e => e.scale.set(on ? 1.5 : 1, on ? 0.14 : 1, 1));
+  if (on && !zzz) {
+    const cv = document.createElement('canvas'); cv.width = 256; cv.height = 128; const g = cv.getContext('2d');
+    g.font = 'bold 72px ' + FONT; g.fillStyle = '#5c7cfa'; g.strokeStyle = '#fff'; g.lineWidth = 8;
+    g.strokeText('Zzz', 40, 92); g.fillText('Zzz', 40, 92);
+    zzz = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), transparent: true, depthWrite: false }));
+    zzz.scale.set(0.9, 0.45, 1); scene.add(zzz);
+    if (!quiet) toast('💤 쿨쿨… 잠들었어요');
+  }
+  if (!on && zzz) { scene.remove(zzz); zzz = null; }
+}
+function sleepTick(t) {
+  if (!PIC.lie) { if (PIC.sleep) setSleep(false); return; }
+  if (!PIC.sleep && performance.now() - (PIC.lieAt || 0) > 30000) setSleep(true);
+  if (zzz) {
+    const h = player.userData.head, w = new THREE.Vector3(); try { h.getWorldPosition(w); } catch (e) { w.copy(player.position); }
+    const k = (t * 0.6) % 1;
+    zzz.position.set(w.x + 0.15, w.y + 0.45 + k * 0.5, w.z);
+    zzz.material.opacity = Math.sin(k * Math.PI);
+  }
 }
 function parkPicUI() {
   const h = $('parkHud'); if (!h) return;
@@ -3034,6 +3084,7 @@ function updateParkDoor(t, dt) {
   parkDoor.k += ((near ? 1 : 0) - parkDoor.k) * Math.min(1, dt * 5);
   parkDoor.L.position.x = 5.35 - parkDoor.k * 0.66; parkDoor.R.position.x = 6.05 + parkDoor.k * 0.66;
   if (window.__parkTick && p.z > 16) window.__parkTick(t, dt);
+  try { sleepTick(t); } catch (e) {}
   runUI(); updateBirds(t, dt); if (p.z > 16) updateDogs(t, dt);
   const inParkNow = mode === 'walk' && p.z > PARK.z0 && p.x > PARK.x0 && p.x < PARK.x1;
   updateParkWeather(t, dt, inParkNow || (!!skyView && p.z > PARK.z0));
@@ -5820,7 +5871,7 @@ function standUp() {
   if (skyView) exitSky();
   sitting.taken = false; sitting = null; stopStudy(); exitDeskView();
   if (myPet && myPet.seat) { myPet.seat.taken = false; myPet.seat = null; }
-  player.position.copy(preSit); if (player.rotation.order !== 'XYZ' || player.rotation.x) { player.rotation.order = 'XYZ'; player.rotation.x = 0; player.rotation.z = 0; } try { PIC.lie = false; setTimeout(parkPicUI, 0); } catch (e) {}
+  player.position.copy(preSit); if (player.rotation.order !== 'XYZ' || player.rotation.x) { player.rotation.order = 'XYZ'; player.rotation.x = 0; player.rotation.z = 0; } try { PIC.lie = false; setSleep(false); setTimeout(parkPicUI, 0); } catch (e) {}
   player.userData.legs.forEach(p => p.rotation.x = 0);
   $('sitBtn').textContent = '🪑 앉기';
 }
@@ -6277,10 +6328,13 @@ function updateAgents(t) {
 const LOOK_STYLES = [['b', '단발'], ['m', '짧은 머리'], ['f', '긴 머리']];
 const LOOK_HAIR = [0x1e1a18, 0x4a3022, 0x8a5a36, 0xc9a06a, 0x7a7f88];
 const LOOK_SHIRT = [0xffc94d, 0x6c8ebf, 0x6abf7a, 0xf4a3b8, 0xa58ad6, 0xf5f5f5, 0x2e3a5f, 0xe8702a];
-const LOOK_PANTS = [0x4a5568, 0x2b2f3a, 0x6b4f3a, 0x3d5a80, 0xd8d2c4];
+const LOOK_PANTS = [0x4a5568, 0x2b2f3a, 0x6b4f3a, 0x3d5a80, 0xd8d2c4, 0xc2554d, 0xf4a3b8];
+const LOOK_SLEEVE = [['l', '긴팔'], ['s', '반팔']];
+const LOOK_BOTTOM = [['lp', '긴바지'], ['sp', '반바지'], ['ls', '긴치마'], ['ss', '짧은치마']];
+const LOOK_BAG = [0, 0xe8702a, 0x3d5a80, 0x2f9e44, 0xf4a3b8, 0xffc94d, 0x2b2f3a];
 let myLook = { s: 'b', h: 0x2b2220, c: 0xffc94d, p: 0x4a5568 };
 try { const sv = JSON.parse(localStorage.getItem('ktrfLook') || 'null'); if (sv && sv.s) myLook = sv; } catch (e) {}
-const lookOpts = l => ({ shirt: l.c, hair: l.h, pants: l.p, longHair: l.s === 'f', male: l.s === 'm' });
+const lookOpts = l => ({ shirt: l.c, hair: l.h, pants: l.p, longHair: l.s === 'f', male: l.s === 'm', sleeve: l.v || 'l', bottom: l.b || 'lp', bag: l.k || 0 });
 function addGradCap(head) {
   const g = new THREE.Group(); g.position.set(0, 0.2, -0.02); g.rotation.x = -0.12; head.add(g);
   const mk = M(0x1b1f2a, { roughness: 0.6 });
@@ -6297,7 +6351,7 @@ function restyle(ch, look) {
   const tmp = makeChar(lookOpts(look)); scene.remove(tmp);
   for (const c of [...ch.children]) if (!(c.isSprite || c === readBook || c === writePad)) ch.remove(c);
   for (const c of [...tmp.children]) ch.add(c);
-  const u = ch.userData; u.legs = tmp.userData.legs; u.arms = tmp.userData.arms; u.head = tmp.userData.head;
+  const u = ch.userData; u.legs = tmp.userData.legs; u.arms = tmp.userData.arms; u.head = tmp.userData.head; u.eyes = tmp.userData.eyes; if (ch === player && PIC.sleep) setSleep(true, true);
   if (look.dr) addGradCap(u.head);
   if (ch === player) u.arms[1].add(mug);
 }
@@ -6312,11 +6366,11 @@ function buildLookUI() {
     arr.forEach(v => {
       const b = document.createElement('button');
       if (isStyle) { b.className = 'st' + (myLook[key] === v[0] ? ' on' : ''); b.textContent = v[1]; b.onclick = () => { myLook[key] = v[0]; applyMyLook(); }; }
-      else { b.className = 'sw' + (myLook[key] === v ? ' on' : ''); b.style.background = '#' + v.toString(16).padStart(6, '0'); b.onclick = () => { myLook[key] = v; applyMyLook(); }; }
+      else { b.className = 'sw' + ((myLook[key] || 0) === v ? ' on' : ''); if (v === 0) { b.textContent = '✕'; b.style.background = '#fff'; b.style.color = '#8a96a3'; b.title = '없음'; } else b.style.background = '#' + v.toString(16).padStart(6, '0'); b.onclick = () => { myLook[key] = v; applyMyLook(); }; }
       box.appendChild(b);
     });
   };
-  mk('lkStyle', LOOK_STYLES, 's', true); mk('lkHair', LOOK_HAIR, 'h'); mk('lkShirt', LOOK_SHIRT, 'c'); mk('lkPants', LOOK_PANTS, 'p');
+  mk('lkStyle', LOOK_STYLES, 's', true); mk('lkHair', LOOK_HAIR, 'h'); mk('lkSleeve', LOOK_SLEEVE, 'v', true); mk('lkShirt', LOOK_SHIRT, 'c'); mk('lkBottom', LOOK_BOTTOM, 'b', true); mk('lkPants', LOOK_PANTS, 'p'); mk('lkBag', LOOK_BAG, 'k');
 }
 applyMyLook(false);
 $('lookBtn').addEventListener('click', () => { buildLookUI(); $('lookView').classList.add('show'); });
